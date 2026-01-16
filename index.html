@@ -31,7 +31,7 @@
             
             /* Fonte Monoespaçada Consistente */
             --code-font: 'Menlo', 'Courier New', monospace;
-            --code-line-height: 24px; /* Altura de linha fixa para sincronia perfeita */
+            --code-line-height: 24px;
         }
 
         * { 
@@ -92,7 +92,7 @@
             text-overflow: ellipsis;
         }
 
-        /* --- 2. EDITOR AREA (Correção de Sincronia) --- */
+        /* --- 2. EDITOR AREA --- */
         #editor-area {
             position: fixed;
             top: 0; 
@@ -111,13 +111,12 @@
             color: #555;
             font-family: var(--code-font);
             font-size: 13px;
-            /* CRÍTICO: Mesma line-height e padding-top do textarea */
             line-height: var(--code-line-height);
             padding-top: 15px; 
             padding-right: 8px;
             border-right: 0.5px solid #333;
             text-align: right;
-            overflow: hidden; /* Esconde barra de rolagem dos números */
+            overflow: hidden;
             user-select: none;
         }
 
@@ -127,13 +126,12 @@
             color: #d1d1d1;
             font-family: var(--code-font);
             font-size: 13px;
-            /* CRÍTICO: Mesma line-height e padding-top da div de números */
             line-height: var(--code-line-height);
             padding: 15px 10px; 
             border: none;
             resize: none;
             outline: none;
-            white-space: pre; /* Impede quebra de linha automática para manter sincronia */
+            white-space: pre;
             overflow: auto;
             -webkit-overflow-scrolling: touch;
         }
@@ -262,7 +260,7 @@
             background: var(--ios-secondary-bg);
             border-bottom: 0.5px solid var(--ios-separator);
             display: flex;
-            justify-content: space-between;
+            justify-content: center; /* Centralizado */
             align-items: center;
             padding-left: 16px; 
             padding-right: 16px;
@@ -387,9 +385,7 @@
 
     <div id="files-overlay">
         <div class="files-header">
-            <button class="ios-btn" onclick="closeFiles()">Cancelar</button>
             <span class="modal-title">Meus Projetos</span>
-            <div style="width:50px"></div>
         </div>
 
         <div class="file-list">
@@ -462,7 +458,6 @@
             lineNums.innerHTML = Array.from({length: lines}, (_, i) => i + 1).join('<br>');
         };
         
-        // CORREÇÃO DE SCROLL (Sincronia Perfeita)
         codeInput.addEventListener('scroll', () => { 
             lineNums.scrollTop = codeInput.scrollTop;
         });
@@ -648,8 +643,9 @@
             input.value = '';
         }
 
-        // Init
+        // Inicialização: Abre a lista de arquivos automaticamente
         updateLines();
+        openFiles();
     </script>
 </body>
 </html>
