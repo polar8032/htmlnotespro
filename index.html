@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>PocketHTML</title>
+    <style>
+        :root {
+            --bg-color: #1e1e1e;
+            --sidebar-color: #252526;
+            --text-color: #d4d4d4;
+            --accent-color: #007aff;
+            --success-color: #30d158;
+            --warning-color: #ff9f0a;
+            --code-font: 'Menlo', 'Courier New', monospace;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* Cabeçalho */
+        header {
+            background-color: var(--sidebar-color);
+            padding: 15px;
+            padding-top: max(15px, env(safe-area-inset-top));
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #333;
+        }
+
+        h1 { margin: 0; font-size: 18px; font-weight: 600; }
+
+        button {
+            background: none;
+            border: none;
+            color: var(--accent-color);
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        /* Área Principal */
+        #main-container {
+            flex: 1;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #editor {
+            flex: 1;
+            width: 100%;
+            background-color: var(--bg-color);
+            color: #fff;
+            font-family: var(--code-font);
+            font-size: 16px;
+            border: none;
+            padding: 15px;
+            resize: none;
+            outline: none;
+            box-sizing: border-box;
+            line-height: 1.5;
+        }
+
+        #preview-frame {
+            flex: 1;
+            width: 100%;
+            height: 100%;
+            background: white;
+            border: none;
+            display: none;
+        }
+
+        /* Barra de Ferramentas */
+        #code-toolbar {
+            background-color: #2d2d30;
+            padding: 8px;
+            display: flex;
+            gap: 10px;
+            overflow-x: auto;
+            border-top: 1px solid #3e3e42;
+        }
+
+        .tool-btn {
+            background: #3e3e42;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 6px;
+            font-family: var(--code-font);
+            font-weight: bold;
+            min-width: 40px;
+        }
+
+        /* Tab Bar */
+        #tab-bar {
+            background-color: var(--sidebar-color);
+            padding: 10px;
+            padding-bottom: max(10px, env(safe-area-inset-bottom));
+            display: flex;
+            justify-content: space-around;
+            border-top: 1px solid #333;
+        }
+
+        .tab-btn {
+            color: #888;
+            font-size: 14px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .tab-btn.active { color: var(--accent-color); }
+
+        /* MODAL DE ARQUIVOS */
+        #file-list {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: var(--bg-color);
+            z-index: 10;
+            display: none;
+            flex-direction: column;
+        }
+        
+        .file-item {
+            padding: 15px;
+            border-bottom: 1px solid #333;
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .delete-btn { color: #ff453a; }
+
+        /* Área de Backup */
+        .backup-section {
+            padding: 15px;
+            background-color: #2c2c2e;
+            margin-top: auto; /* Empurra para o fundo */
+            border-top: 1px solid #444;
+        }
+        
+        .backup-title {
+            font-size: 12px;
+            text-transform: uppercase;
+            color: #888;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        .btn-row {
+            display: flex;
+            gap: 10px;
+        }
+
+        .action-btn {
+            flex: 1;
+            padding: 12px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 14px;
+            text-align: center;
+        }
+
+        .btn-export { background-color: var(--success-color); color: black; }
+        .btn-import { background-color: var(--warning-color); color: black; }
+
+        /* Input de arquivo invisível */
+        #file-input { display: none; }
+
+    </style>
+</head>
+<body>
+
+    <header>
+        <button id="files-btn">Meus Arquivos</button>
+        <h1 id="doc-title">Sem Título</h1>
+        <button id="save-btn">Salvar</button>
+    </header>
+
+    <div id="main-container">
+        <div id="file-list">
+            <div style="padding: 20px; text-align: center; border-bottom: 1px solid #333;">
+                <button onclick="createNewFile()" style="font-weight: bold; font-size: 18px;">+ Novo Arquivo HTML</button>
+            </div>
+            
+            <div id="saved-files-container" style="overflow-y: auto; flex: 1;"></div>
+            
+            <div class="backup-section">
+                <span class="backup-title">Gestão de Dados</span>
+                <div class="btn-row">
+                    <button class="action-btn btn-export" onclick="exportBackup()">⬇ Baixar Backup</button>
+                    <button class="action-btn btn-import" onclick="triggerImport()">⬆ Restaurar</button>
+                </div>
+                <div style="text-align: center; margin-top: 15px;">
+                    <button onclick="toggleFileList()" style="color: white;">Voltar ao Editor</button>
+                </div>
+            </div>
+        </div>
+
+        <textarea id="editor" spellcheck="false" autocomplete="off" autocapitalize="off" placeholder="Escreve o teu HTML aqui..."></textarea>
+        <iframe id="preview-frame"></iframe>
+    </div>
+
+    <div id="code-toolbar">
+        <button class="tool-btn" onclick="insertText('<')">&lt;</button>
+        <button class="tool-btn" onclick="insertText('>')">&gt;</button>
+        <button class="tool-btn" onclick="insertText('/')">/</button>
+        <button class="tool-btn" onclick="insertText('=')">=</button>
+        <button class="tool-btn" onclick="insertText('"')">"</button>
+        <button class="tool-btn" onclick="insertText(' class=')">class</button>
+        <button class="tool-btn" onclick="insertText(' style=')">style</button>
+        <button class="tool-btn" onclick="insertText('<div></div>')">div</button>
+    </div>
+
+    <div id="tab-bar">
+        <button class="tab-btn active" onclick="switchTab('editor')" id="tab-editor">
+            <span>&lt;/&gt;</span>
+            <span>Código</span>
+        </button>
+        <button class="tab-btn" onclick="switchTab('preview')" id="tab-preview">
+            <span>👁️</span>
+            <span>Preview</span>
+        </button>
+    </div>
+
+    <input type="file" id="file-input" accept=".json" onchange="importBackup(this)">
+
+    <script>
+        const editor = document.getElementById('editor');
+        const previewFrame = document.getElementById('preview-frame');
+        const fileListOverlay = document.getElementById('file-list');
+        const savedFilesContainer = document.getElementById('saved-files-container');
+        const docTitle = document.getElementById('doc-title');
+        
+        let currentFileId = null;
+
+        // --- Lógica do Editor ---
+        function insertText(text) {
+            const start = editor.selectionStart;
+            const end = editor.selectionEnd;
+            const value = editor.value;
+            editor.value = value.substring(0, start) + text + value.substring(end);
+            editor.selectionStart = editor.selectionEnd = start + text.length;
+            editor.focus();
+            
+            if(text.includes('></')) {
+                const middle = text.indexOf('></') + 1;
+                editor.selectionStart = editor.selectionEnd = start + middle;
+            }
+        }
+
+        function switchTab(mode) {
+            document.getElementById('tab-editor').classList.remove('active');
+            document.getElementById('tab-preview').classList.remove('active');
+            
+            if (mode === 'editor') {
+                document.getElementById('tab-editor').classList.add('active');
+                editor.style.display = 'block';
+                previewFrame.style.display = 'none';
+                document.getElementById('code-toolbar').style.display = 'flex';
+            } else {
+                document.getElementById('tab-preview').classList.add('active');
+                editor.style.display = 'none';
+                previewFrame.style.display = 'block';
+                document.getElementById('code-toolbar').style.display = 'none';
+                updatePreview();
+            }
+        }
+
+        function updatePreview() {
+            previewFrame.srcdoc = editor.value;
+        }
+
+        // --- Gestão de Arquivos ---
+        document.getElementById('save-btn').addEventListener('click', saveFile);
+        document.getElementById('files-btn').addEventListener('click', toggleFileList);
+
+        function saveFile() {
+            let fileName = prompt("Nome do arquivo:", docTitle.innerText === "Sem Título" ? "index.html" : docTitle.innerText);
+            if (!fileName) return;
+
+            if (!currentFileId) currentFileId = Date.now().toString();
+            
+            const fileData = {
+                id: currentFileId,
+                name: fileName,
+                content: editor.value,
+                date: new Date().toLocaleDateString()
+            };
+
+            localStorage.setItem('html_note_' + currentFileId, JSON.stringify(fileData));
+            docTitle.innerText = fileName;
+            alert("Salvo!");
+            loadFilesList();
+        }
+
+        function loadFilesList() {
+            savedFilesContainer.innerHTML = '';
+            let hasFiles = false;
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key.startsWith('html_note_')) {
+                    hasFiles = true;
+                    const file = JSON.parse(localStorage.getItem(key));
+                    
+                    const div = document.createElement('div');
+                    div.className = 'file-item';
+                    div.innerHTML = `
+                        <span onclick="openFile('${file.id}')" style="flex:1; cursor:pointer">
+                            <strong>${file.name}</strong> <br> <small>${file.date}</small>
+                        </span>
+                        <span class="delete-btn" onclick="deleteFile('${file.id}')">🗑️</span>
+                    `;
+                    savedFilesContainer.appendChild(div);
+                }
+            }
+            if(!hasFiles) {
+                savedFilesContainer.innerHTML = '<div style="padding:20px; text-align:center; color:#666;">Sem arquivos salvos.</div>';
+            }
+        }
+
+        function openFile(id) {
+            const file = JSON.parse(localStorage.getItem('html_note_' + id));
+            if(file) {
+                editor.value = file.content;
+                docTitle.innerText = file.name;
+                currentFileId = file.id;
+                toggleFileList();
+            }
+        }
+
+        function deleteFile(id) {
+            if(confirm("Apagar este arquivo permanentemente?")) {
+                localStorage.removeItem('html_note_' + id);
+                loadFilesList();
+                if(currentFileId === id) createNewFile();
+            }
+        }
+
+        function createNewFile() {
+            editor.value = "<!DOCTYPE html>\n<html>\n<body>\n  <h1>Olá</h1>\n</body>\n</html>";
+            docTitle.innerText = "Sem Título";
+            currentFileId = null;
+            toggleFileList(); // Fecha o menu se estiver aberto
+        }
+
+        function toggleFileList() {
+            const display = fileListOverlay.style.display;
+            if (display === 'none' || display === '') {
+                loadFilesList();
+                fileListOverlay.style.display = 'flex';
+            } else {
+                fileListOverlay.style.display = 'none';
+            }
+        }
+
+        // --- SISTEMA DE BACKUP ---
+
+        // 1. Exportar (Download)
+        function exportBackup() {
+            const backupData = [];
+            // Coleciona todas as notas
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key.startsWith('html_note_')) {
+                    backupData.push(JSON.parse(localStorage.getItem(key)));
+                }
+            }
+
+            if (backupData.length === 0) {
+                alert("Não tens arquivos salvos para fazer backup.");
+                return;
+            }
+
+            // Cria o arquivo Blob
+            const dataStr = JSON.stringify(backupData, null, 2);
+            const blob = new Blob([dataStr], { type: "application/json" });
+            const url = URL.createObjectURL(blob);
+
+            // Cria link temporário para download
+            const a = document.createElement('a');
+            a.href = url;
+            const dateStr = new Date().toISOString().slice(0,10);
+            a.download = `backup_html_notes_${dateStr}.json`;
+            document.body.appendChild(a);
+            a.click();
+            
+            // Limpeza
+            setTimeout(() => {
+                document.body.removeChild(a);
+                window.URL.revokeObjectURL(url);
+            }, 0);
+        }
+
+        // 2. Importar (Trigger)
+        function triggerImport() {
+            document.getElementById('file-input').click();
+        }
+
+        // 3. Processar Arquivo Importado
+        function importBackup(input) {
+            const file = input.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const importedData = JSON.parse(e.target.result);
+                    
+                    if (!Array.isArray(importedData)) {
+                        throw new Error("Formato inválido");
+                    }
+
+                    let count = 0;
+                    importedData.forEach(note => {
+                        // Verifica se é uma nota válida
+                        if (note.id && note.name && note.content) {
+                            localStorage.setItem('html_note_' + note.id, JSON.stringify(note));
+                            count++;
+                        }
+                    });
+
+                    alert(`Sucesso! ${count} arquivos recuperados.`);
+                    loadFilesList();
+                } catch (err) {
+                    alert("Erro ao ler o arquivo de backup. Certifica-te que é um arquivo .json válido.");
+                    console.error(err);
+                }
+            };
+            reader.readAsText(file);
+            
+            // Limpa o input para permitir selecionar o mesmo arquivo novamente se necessário
+            input.value = '';
+        }
+
+        // Inicialização
+        createNewFile();
+
+    </script>
+</body>
+</html>
