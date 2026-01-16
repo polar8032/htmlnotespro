@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>PocketHTML v13</title>
+    <title>PocketHTML v14</title>
     <style>
         /* --- CONFIGURAÇÕES GERAIS --- */
         :root {
@@ -30,7 +30,8 @@
             color: var(--text-color);
             margin: 0;
             height: 100vh;
-            height: -webkit-fill-available; /* Correção iOS */
+            /* Força altura real no iOS para evitar que a barra de endereços esconda coisas */
+            height: -webkit-fill-available; 
             width: 100vw;
             display: flex;
             flex-direction: column;
@@ -58,23 +59,22 @@
 
         /* --- 2. ÁREA CENTRAL --- */
         #main-area {
-            flex: 1 1 auto;
+            flex: 1; /* Ocupa o resto do ecrã */
             position: relative;
             overflow: hidden;
             display: flex;
             flex-direction: column;
             background-color: var(--bg-color);
             z-index: 1;
-            min-height: 0;
         }
 
+        /* EDITOR */
         #editor-container {
             display: flex;
             flex: 1;
             height: 100%;
             overflow: hidden;
             position: relative;
-            background-color: var(--bg-color);
         }
 
         #line-numbers {
@@ -108,14 +108,16 @@
             tab-size: 2;
         }
 
-        /* --- PREVIEW (CORRIGIDO SIMPLIFICADO) --- */
+        /* --- PREVIEW (SISTEMA DE WRAPPER ABSOLUTO) --- */
         #preview-container {
             display: none; 
             flex-direction: column;
-            background: #f0f0f5;
+            background: #f2f2f7;
             z-index: 5;
             height: 100%;
             width: 100%;
+            position: absolute; /* Sobrepõe o editor */
+            top: 0; left: 0;
         }
         
         .url-bar {
@@ -125,12 +127,20 @@
             flex: 0 0 auto;
         }
 
+        /* O Segredo do iOS: Um wrapper relativo com um iframe absoluto dentro */
+        #iframe-wrapper {
+            flex: 1;
+            position: relative;
+            width: 100%;
+            overflow: hidden;
+            background: white;
+        }
+
         iframe { 
-            flex: 1; /* Ocupa todo o espaço restante naturalmente */
-            width: 100%; 
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            width: 100%; height: 100%;
             border: none; 
-            background: white; 
-            display: block;
         }
 
         /* --- 3. TOOLBAR --- */
@@ -223,7 +233,6 @@
         .orange { background: #ff9f0a; color: #000; }
 
         .hidden { display: none !important; }
-        .flex { display: flex !important; }
 
     </style>
 </head>
@@ -243,7 +252,9 @@
         
         <div id="preview-container">
             <div class="url-bar">🔒 Local Preview</div>
-            <iframe id="preview-frame"></iframe>
+            <div id="iframe-wrapper">
+                <iframe id="preview-frame"></iframe>
+            </div>
         </div>
     </div>
 
@@ -306,6 +317,7 @@
 
         let currentId = null;
 
+        // --- SINCRONIA ---
         const updateLines = () => {
             const val = codeInput.value;
             const lines = val.split('\n').length;
@@ -314,6 +326,7 @@
         codeInput.addEventListener('scroll', () => { lineNums.scrollTop = codeInput.scrollTop; });
         codeInput.addEventListener('input', updateLines);
 
+        // --- INSERÇÃO ---
         function ins(txt) {
             const start = codeInput.selectionStart;
             const end = codeInput.selectionEnd;
@@ -341,35 +354,49 @@
             }
         }
 
+        // --- MODO PREVIEW (COM INJEÇÃO AUTOMÁTICA) ---
         function setMode(mode) {
             document.getElementById('tab-code').classList.remove('active');
             document.getElementById('tab-view').classList.remove('active');
 
             if (mode === 'code') {
                 document.getElementById('tab-code').classList.add('active');
-                editorContainer.style.display = 'flex';
-                previewContainer.style.display = 'none';
+                previewContainer.style.display = 'none'; // Esconde Preview
+                editorContainer.style.display = 'flex';  // Mostra Editor
                 toolbar.style.display = 'flex';
             } else {
                 document.getElementById('tab-view').classList.add('active');
-                editorContainer.style.display = 'none';
-                previewContainer.style.display = 'flex';
+                editorContainer.style.display = 'none';  // Esconde Editor
+                previewContainer.style.display = 'flex'; // Mostra Preview
                 toolbar.style.display = 'none'; 
                 
                 let content = codeInput.value.trim();
                 
-                if(!content) {
-                    content = "<body style='padding:20px; font-family:sans-serif; text-align:center; color:#888'>Preview Vazio</body>";
+                // --- A CORREÇÃO MÁGICA ---
+                // Se o código não tiver Viewport (que define o zoom no telemóvel),
+                // nós injetamos um para que o texto não fique minúsculo.
+                if(!content.includes('<meta name="viewport"')) {
+                    const viewportTag = '<meta name="viewport" content="width=device-width, initial-scale=1.0">';
+                    if(content.includes('<head>')) {
+                        content = content.replace('<head>', '<head>' + viewportTag);
+                    } else if(content.includes('<html>')) {
+                         content = content.replace('<html>', '<html><head>' + viewportTag + '</head>');
+                    } else {
+                        // Se for só texto solto
+                        content = viewportTag + content;
+                    }
                 }
+
+                // Injeta espaço extra no fundo para não cortar
+                content += '<div style="width:100%; height:150px; clear:both;"></div>';
                 
-                // SOLUÇÃO INFALÍVEL PARA CORTE NO IPHONE:
-                // Adiciona um DIV espaçador no final do conteúdo, aconteça o que acontecer.
-                content += '<div style="width:100%; height:100px; clear:both;"></div>';
+                if(!codeInput.value.trim()) content = "<body style='padding:20px; font-family:sans-serif; text-align:center; color:#888'>Preview Vazio</body>";
                 
                 iframe.srcdoc = content;
             }
         }
 
+        // --- ARQUIVOS ---
         function openFiles() {
             loadList();
             overlay.classList.remove('hidden');
