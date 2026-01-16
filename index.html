@@ -5,13 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>PocketHTML v5</title>
+    <title>PocketHTML v6</title>
     <style>
         :root {
             --bg-color: #1e1e1e;
             --sidebar-color: #252526;
-            --line-num-bg: #2e2e2e;
-            --line-num-text: #858585;
+            --line-num-bg: #252526;
+            --line-num-text: #6e6e6e;
             --text-color: #d4d4d4;
             --accent-color: #0a84ff;
             --danger-color: #ff453a;
@@ -31,6 +31,10 @@
             overflow: hidden;
         }
 
+        /* UTILS */
+        .d-none { display: none !important; }
+        .flex { display: flex !important; }
+
         /* HEADER */
         header {
             background-color: var(--sidebar-color);
@@ -42,24 +46,28 @@
             border-bottom: 1px solid #333;
             height: 44px;
             flex-shrink: 0;
-            z-index: 200; /* Header sempre no topo */
+            z-index: 50; 
         }
 
         h1 { margin: 0; font-size: 17px; font-weight: 600; color: white; }
-        
         button { background: none; border: none; font-size: 16px; cursor: pointer; }
         .header-btn { color: var(--accent-color); font-weight: 500; }
-        
-        /* Classe para esconder elementos */
-        .d-none { display: none !important; }
 
-        /* EDITOR E LINHAS */
-        #editor-wrapper {
+        /* ÁREA CENTRAL */
+        #main-content {
             flex: 1;
-            display: flex; /* Flex para alinhar numeros e texto */
             position: relative;
             overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* EDITOR WRAPPER (Linhas + Texto) */
+        #editor-wrapper {
+            flex: 1;
+            display: flex;
             background-color: var(--bg-color);
+            overflow: hidden;
         }
 
         #line-numbers {
@@ -71,9 +79,8 @@
             line-height: 22px; 
             text-align: right;
             padding: 10px 5px;
-            border-right: 1px solid #444;
+            border-right: 1px solid #333;
             box-sizing: border-box;
-            overflow: hidden;
             user-select: none;
         }
 
@@ -93,20 +100,42 @@
             tab-size: 2;
         }
 
+        /* PREVIEW WRAPPER (Diferenciado da App) */
+        #preview-wrapper {
+            flex: 1;
+            display: none; /* Hidden by default */
+            flex-direction: column;
+            background-color: #f2f2f7; /* Cor de fundo cinza claro tipo iOS */
+        }
+
+        /* Barra falsa de navegador para separar visualmente */
+        .browser-bar {
+            background: #fff;
+            padding: 8px 15px;
+            border-bottom: 1px solid #ccc;
+            color: #000;
+            font-size: 12px;
+            text-align: center;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+        }
+
         #preview-frame {
             flex: 1;
             width: 100%;
             height: 100%;
             background: white;
             border: none;
-            display: none;
         }
 
-        /* TOOLBAR (Acima do Teclado) */
+        /* TOOLBAR (Teclado) */
         #code-toolbar {
             background-color: #2d2d30;
             padding: 8px 5px;
-            display: flex; /* Flex por padrão, controlado via JS */
+            display: flex;
             gap: 10px;
             overflow-x: auto;
             border-top: 1px solid #3e3e42;
@@ -131,15 +160,14 @@
             justify-content: center;
             flex-shrink: 0; 
         }
-
         .btn-copy { background-color: rgba(50, 215, 75, 0.2); color: var(--success-color); font-size: 12px; text-transform: uppercase; }
         .btn-clear { background-color: rgba(255, 69, 58, 0.2); color: var(--danger-color); font-size: 12px; text-transform: uppercase; }
 
-        /* BARRA INFERIOR (ABAS) - AGORA ESCONDIDA POR PADRÃO */
+        /* BARRA INFERIOR (ABAS) */
         #tab-bar {
             background-color: var(--sidebar-color);
             height: var(--tab-bar-height); 
-            display: none; /* <--- MUDANÇA CRUCIAL: Começa invisível */
+            display: none; /* Começa escondida */
             align-items: flex-start;
             justify-content: space-around;
             border-top: 1px solid #333;
@@ -149,9 +177,6 @@
             box-sizing: border-box;
         }
         
-        /* Classe para mostrar a barra quando necessário */
-        .show-bar { display: flex !important; }
-
         .tab-btn {
             color: #666;
             display: flex;
@@ -165,19 +190,43 @@
         .tab-text { font-size: 11px; font-weight: 500; }
         .tab-btn.active { color: var(--accent-color); }
 
-        /* LISTA DE ARQUIVOS (OVERLAY TOTAL) */
+        /* --- LISTA DE ARQUIVOS (OVERLAY) --- */
+        /* Z-index muito alto para cobrir tudo */
         #file-list {
-            position: absolute;
-            top: 45px; /* Abaixo do header */
-            left: 0; right: 0; bottom: 0;
+            position: fixed; 
+            top: 0; left: 0; right: 0; bottom: 0;
             background: var(--bg-color);
-            z-index: 100;
+            z-index: 2000; 
             display: flex;
             flex-direction: column;
         }
 
+        .file-header {
+            padding: 15px;
+            padding-top: max(15px, env(safe-area-inset-top));
+            background: var(--sidebar-color);
+            border-bottom: 1px solid #333;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* Botão Criar Novo */
+        .new-file-btn {
+            padding: 25px 20px; /* Mais espaço */
+            border-bottom: 1px solid #333;
+            color: var(--accent-color);
+            font-size: 17px;
+            font-weight: 600;
+            cursor: pointer;
+            background: #252526;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
         .file-item {
-            padding: 18px 15px;
+            padding: 18px 20px;
             border-bottom: 1px solid #333;
             display: flex;
             justify-content: space-between;
@@ -194,12 +243,7 @@
         }
 
         .action-btn {
-            width: 100%;
-            padding: 14px;
-            border-radius: 10px;
-            font-weight: 600;
-            margin-bottom: 10px;
-            font-size: 15px;
+            width: 100%; padding: 14px; border-radius: 10px; font-weight: 600; margin-bottom: 10px; font-size: 15px;
         }
         .btn-green { background: var(--success-color); color: black; }
         .btn-orange { background: #ff9f0a; color: black; }
@@ -216,26 +260,22 @@
         <button class="header-btn" id="save-btn">Salvar</button>
     </header>
 
-    <div id="file-list">
-        <div onclick="createNewFile()" style="padding:20px; border-bottom:1px solid #333; color:var(--accent-color); font-size:17px; font-weight:600; cursor:pointer; background: #252526;">
-            + Criar Novo (Vazio)
+    <div id="main-content">
+        <div id="editor-wrapper">
+            <div id="line-numbers">1</div>
+            <textarea id="editor" spellcheck="false" autocomplete="off" autocapitalize="off" placeholder=""></textarea>
         </div>
 
-        <div id="saved-files-container" style="overflow-y:auto; flex:1;"></div>
-
-        <div class="backup-section">
-            <button class="action-btn btn-green" onclick="exportBackup()">⬇ Baixar Backup</button>
-            <button class="action-btn btn-orange" onclick="triggerImport()">⬆ Restaurar Backup</button>
+        <div id="preview-wrapper">
+            <div class="browser-bar">
+                <span>🔒 localhost:preview</span>
+            </div>
+            <iframe id="preview-frame" sandbox="allow-scripts allow-same-origin"></iframe>
         </div>
     </div>
 
-    <div id="editor-wrapper">
-        <div id="line-numbers">1</div>
-        <textarea id="editor" spellcheck="false" autocomplete="off" autocapitalize="off" placeholder=""></textarea>
-        <iframe id="preview-frame"></iframe>
-    </div>
-
-    <div id="code-toolbar" class="d-none"> <button class="tool-btn btn-copy" onclick="copyCode()">Copiar</button>
+    <div id="code-toolbar" class="d-none">
+        <button class="tool-btn btn-copy" onclick="copyCode()">Copiar</button>
         <button class="tool-btn btn-clear" onclick="clearCode()">Apagar</button>
         <div style="width:1px; height:20px; background:#555; margin:0 5px;"></div>
         <button class="tool-btn" onclick="insertText('<')">&lt;</button>
@@ -259,12 +299,35 @@
         </button>
     </div>
 
+    <div id="file-list">
+        <div class="file-header">
+            <span style="font-weight:bold; font-size:18px; color:white;">Meus Projetos</span>
+            <button onclick="closeFileList()" style="color:var(--accent-color); font-size:16px;">Voltar</button>
+        </div>
+
+        <div class="new-file-btn" onclick="createNewFile()">
+            <span style="font-size: 24px;">+</span>
+            <span>Criar Novo (Vazio)</span>
+        </div>
+
+        <div id="saved-files-container" style="overflow-y:auto; flex:1;"></div>
+
+        <div class="backup-section">
+            <button class="action-btn btn-green" onclick="exportBackup()">⬇ Baixar Backup</button>
+            <button class="action-btn btn-orange" onclick="triggerImport()">⬆ Restaurar Backup</button>
+        </div>
+    </div>
+
     <input type="file" id="file-input" accept=".json" onchange="importBackup(this)">
 
     <script>
         const editor = document.getElementById('editor');
         const lineNumbersEle = document.getElementById('line-numbers');
+        const editorWrapper = document.getElementById('editor-wrapper');
+        
+        const previewWrapper = document.getElementById('preview-wrapper');
         const previewFrame = document.getElementById('preview-frame');
+        
         const fileListOverlay = document.getElementById('file-list');
         const tabBar = document.getElementById('tab-bar');
         const toolbar = document.getElementById('code-toolbar');
@@ -273,18 +336,17 @@
         
         let currentFileId = null;
 
-        // --- 1. SINCRONIA DE LINHAS ---
+        // --- LINHAS NUMERADAS ---
         const updateLineNumbers = () => {
             const lines = editor.value.split('\n').length;
             lineNumbersEle.innerHTML = Array(lines).fill(0).map((_, i) => i + 1).join('<br>');
         };
         const syncScroll = () => { lineNumbersEle.scrollTop = editor.scrollTop; };
-
         editor.addEventListener('input', updateLineNumbers);
         editor.addEventListener('scroll', syncScroll);
         updateLineNumbers();
 
-        // --- 2. EDITOR ---
+        // --- INSERÇÃO DE TEXTO ---
         function insertText(text) {
             const start = editor.selectionStart;
             const end = editor.selectionEnd;
@@ -299,30 +361,40 @@
             updateLineNumbers();
         }
 
+        // --- ALTERNAR ABAS (CORRIGIDO) ---
         function switchTab(mode) {
             document.getElementById('tab-editor').classList.remove('active');
             document.getElementById('tab-preview').classList.remove('active');
             
             if (mode === 'editor') {
                 document.getElementById('tab-editor').classList.add('active');
-                document.getElementById('editor-wrapper').style.display = 'flex';
-                previewFrame.style.display = 'none';
-                toolbar.style.display = 'flex'; // Mostra toolbar
+                
+                editorWrapper.style.display = 'flex'; // Mostra editor
+                previewWrapper.style.display = 'none'; // Esconde preview
+                toolbar.style.display = 'flex';        // Mostra toolbar
+                
             } else {
                 document.getElementById('tab-preview').classList.add('active');
-                document.getElementById('editor-wrapper').style.display = 'none';
-                previewFrame.style.display = 'block';
-                toolbar.style.display = 'none'; // Esconde toolbar no preview
-                previewFrame.srcdoc = editor.value;
+                
+                editorWrapper.style.display = 'none';  // Esconde editor (remove quadrado cinza)
+                previewWrapper.style.display = 'flex'; // Mostra container preview
+                toolbar.style.display = 'none';        // Esconde toolbar
+                
+                // FORCE UPDATE PREVIEW
+                let htmlContent = editor.value;
+                if(!htmlContent.trim()) {
+                    htmlContent = "<body style='font-family:sans-serif; text-align:center; padding:50px; color:#666;'>Nada para visualizar...</body>";
+                }
+                previewFrame.srcdoc = htmlContent;
             }
         }
 
+        // --- COPY & CLEAR ---
         function copyCode() {
             if(!editor.value) return;
             navigator.clipboard.writeText(editor.value);
             alert("Copiado!");
         }
-
         function clearCode() {
             if(confirm("Apagar tudo?")) {
                 editor.value = "";
@@ -330,43 +402,38 @@
             }
         }
 
-        // --- 3. CONTROLO DE ESTADO (UI) ---
-        
-        // MODO: Lista de Arquivos (Main Page)
+        // --- GERENCIAMENTO DE ESTADO ---
         function openFileList() {
             loadFilesList();
-            fileListOverlay.style.display = 'flex'; // Mostra Lista
+            fileListOverlay.style.display = 'flex';
             
-            // ESCONDE O RESTO
-            tabBar.classList.remove('show-bar');    // Esconde Abas
-            toolbar.classList.add('d-none');        // Esconde Toolbar Teclado
-            saveBtn.classList.add('d-none');        // Esconde botão Salvar
-            
-            // Esconde teclado se estiver aberto
+            // Esconde UI de edição
+            tabBar.style.display = 'none';
+            toolbar.style.display = 'none';
+            saveBtn.style.display = 'none';
             editor.blur();
         }
 
-        // MODO: Editor Aberto
         function closeFileList() {
-            fileListOverlay.style.display = 'none'; // Esconde Lista
+            fileListOverlay.style.display = 'none';
             
-            // MOSTRA O RESTO
-            tabBar.classList.add('show-bar');       // Mostra Abas
-            toolbar.classList.remove('d-none');     // Mostra Toolbar Teclado
-            saveBtn.classList.remove('d-none');     // Mostra botão Salvar
+            // Mostra UI de edição
+            tabBar.style.display = 'flex';
+            toolbar.style.display = 'flex';
+            saveBtn.style.display = 'block';
             
-            switchTab('editor'); // Garante que volta para o código
+            switchTab('editor'); 
         }
 
         function createNewFile() {
-            editor.value = ""; 
+            editor.value = "";
             docTitle.innerText = "Sem Título";
             currentFileId = null;
             updateLineNumbers();
-            closeFileList(); // Vai para o editor
+            closeFileList();
         }
 
-        // Salvar
+        // SALVAR
         saveBtn.addEventListener('click', () => {
             let defaultName = docTitle.innerText === "Sem Título" ? "index.html" : docTitle.innerText;
             let fileName = prompt("Nome do arquivo:", defaultName);
@@ -418,7 +485,7 @@
                 docTitle.innerText = file.name;
                 currentFileId = file.id;
                 updateLineNumbers();
-                closeFileList(); // Vai para o editor
+                closeFileList();
             }
         }
 
@@ -430,7 +497,7 @@
             }
         }
 
-        // --- 4. BACKUP ---
+        // --- BACKUP ---
         function exportBackup() {
             const backupData = [];
             for (let i = 0; i < localStorage.length; i++) {
@@ -472,8 +539,7 @@
         }
 
         // INICIALIZAÇÃO
-        openFileList(); // Força o estado inicial de "Menu Aberto, Barra Fechada"
-
+        openFileList(); 
     </script>
 </body>
 </html>
