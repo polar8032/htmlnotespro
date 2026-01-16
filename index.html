@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>PocketHTML v9</title>
+    <title>PocketHTML v10</title>
     <style>
         /* --- CONFIGURAÇÕES GERAIS --- */
         :root {
@@ -18,6 +18,7 @@
             --success-color: #30d158;
             --danger-color: #ff453a;
             --code-font: 'Menlo', 'Courier New', monospace;
+            --header-height: 50px;
             --row-height: 24px; 
         }
 
@@ -29,37 +30,40 @@
             color: var(--text-color);
             margin: 0;
             height: 100vh;
+            height: -webkit-fill-available; /* Correção iOS */
             width: 100vw;
             display: flex;
-            flex-direction: column;
+            flex-direction: column; /* Organiza verticalmente: Header -> Main -> Footer */
             overflow: hidden;
         }
 
-        /* --- CABEÇALHO --- */
+        /* --- 1. CABEÇALHO (Agora ocupa espaço real) --- */
         header {
-            height: 50px;
+            flex: 0 0 auto; /* Não encolhe, não cresce, altura fixa */
             background-color: var(--sidebar-color);
             border-bottom: 1px solid #333;
             display: flex;
             justify-content: space-between;
             align-items: center;
             padding: 0 15px;
-            padding-top: max(5px, env(safe-area-inset-top));
-            flex-shrink: 0;
-            z-index: 999;
-            position: relative;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            
+            /* Altura segura */
+            height: calc(var(--header-height) + env(safe-area-inset-top)); 
+            padding-top: env(safe-area-inset-top);
+            
+            z-index: 50;
+            position: relative; /* Ocupa espaço no fluxo */
         }
 
         h1 { font-size: 16px; margin: 0; color: white; font-weight: 600; }
         button { background: none; border: none; font-size: 16px; cursor: pointer; }
-        .btn-link { color: var(--accent-color); font-weight: 500; padding: 10px 0; }
+        .btn-link { color: var(--accent-color); font-weight: 500; height: 100%; display: flex; align-items: center;}
 
-        /* --- ÁREA CENTRAL --- */
+        /* --- 2. ÁREA CENTRAL (Ocupa o resto do espaço) --- */
         #main-area {
-            flex: 1;
+            flex: 1 1 auto; /* Cresce para ocupar todo o espaço restante */
             position: relative;
-            overflow: hidden;
+            overflow: hidden; /* O conteúdo não sai daqui */
             display: flex;
             flex-direction: column;
             background-color: var(--bg-color);
@@ -69,6 +73,7 @@
         #editor-container {
             display: flex;
             flex: 1;
+            height: 100%; /* Força altura total */
             overflow: hidden;
             position: relative;
             background-color: var(--bg-color);
@@ -82,7 +87,8 @@
             font-size: 14px;
             line-height: var(--row-height);
             text-align: right;
-            padding: 10px 5px 0 0; 
+            padding-top: 10px; /* Margem interna */
+            padding-right: 5px;
             border-right: 1px solid #333;
             overflow: hidden; 
             user-select: none;
@@ -96,7 +102,7 @@
             font-size: 14px;
             line-height: var(--row-height);
             border: none;
-            padding: 10px 10px 50px 10px;
+            padding: 10px 10px 50px 10px; /* Padding top igual ao line-numbers */
             resize: none;
             outline: none;
             white-space: pre;
@@ -111,18 +117,21 @@
             flex-direction: column;
             background: #f0f0f5;
             z-index: 5;
+            height: 100%;
         }
         
         .url-bar {
             background: #fff; padding: 8px; text-align: center;
             font-size: 12px; color: #333; border-bottom: 1px solid #ccc;
             font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 5px;
+            flex: 0 0 auto;
         }
 
-        iframe { width: 100%; height: 100%; border: none; background: white; }
+        iframe { flex: 1; width: 100%; border: none; background: white; }
 
-        /* --- TOOLBAR --- */
+        /* --- 3. TOOLBAR (Teclado) --- */
         #toolbar {
+            flex: 0 0 auto; /* Altura fixa */
             height: 44px;
             background-color: #2c2c2e;
             border-top: 1px solid #3a3a3c;
@@ -131,8 +140,7 @@
             gap: 10px;
             padding: 0 5px;
             overflow-x: auto;
-            flex-shrink: 0;
-            z-index: 100;
+            z-index: 50;
             -webkit-overflow-scrolling: touch;
         }
         #toolbar::-webkit-scrollbar { display: none; }
@@ -153,8 +161,9 @@
         .copy { background: rgba(48, 209, 88, 0.2); color: var(--success-color); }
         .clear { background: rgba(255, 69, 58, 0.2); color: var(--danger-color); }
 
-        /* --- ABAS --- */
+        /* --- 4. ABAS (Rodapé) --- */
         #tab-bar {
+            flex: 0 0 auto; /* Altura fixa */
             height: 80px; 
             background-color: var(--sidebar-color);
             border-top: 1px solid #333;
@@ -163,8 +172,7 @@
             align-items: flex-start;
             padding-top: 10px;
             padding-bottom: env(safe-area-inset-bottom);
-            flex-shrink: 0;
-            z-index: 100;
+            z-index: 50;
         }
         
         .tab-item {
@@ -175,7 +183,7 @@
         .tab-label { font-size: 11px; font-weight: 500; }
         .tab-item.active { color: var(--accent-color); }
 
-        /* --- OVERLAY ARQUIVOS (Z-index Maximo) --- */
+        /* --- 5. OVERLAY ARQUIVOS --- */
         #files-overlay {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -186,12 +194,14 @@
         }
 
         .files-header {
-            padding: 15px; padding-top: max(15px, env(safe-area-inset-top));
+            /* Mesma altura e lógica do header principal */
+            flex: 0 0 auto;
+            height: calc(var(--header-height) + env(safe-area-inset-top)); 
+            padding: 0 15px;
+            padding-top: env(safe-area-inset-top);
+            
             background: var(--sidebar-color); border-bottom: 1px solid #333;
-            /* Centralizado e sem botão voltar */
             display: flex; justify-content: center; align-items: center;
-            flex-shrink: 0;
-            height: 50px;
         }
 
         .new-btn {
@@ -359,18 +369,16 @@
             }
         }
 
-        // --- 3. MENU ARQUIVOS (Lógica Blindada) ---
+        // --- 3. MENU ARQUIVOS (Sem voltar) ---
         function openFiles() {
             loadList();
             overlay.classList.remove('hidden');
-            // Esconde tudo atrás
             tabBar.style.display = 'none';
             toolbar.style.display = 'none';
             saveBtn.style.visibility = 'hidden';
             codeInput.blur(); 
         }
 
-        // Função interna para fechar, só chamada se escolher arquivo
         function _exitFiles() {
             overlay.classList.add('hidden');
             tabBar.style.display = 'flex'; 
@@ -388,7 +396,7 @@
             titleEl.innerText = "Sem Título";
             currentId = null;
             updateLines();
-            _exitFiles(); // Sai do menu
+            _exitFiles(); 
         }
 
         function saveDoc() {
@@ -400,7 +408,7 @@
             localStorage.setItem('phtml_' + currentId, JSON.stringify(doc));
             titleEl.innerText = name;
             alert("Salvo!");
-            loadList(); // Atualiza lista interna
+            loadList(); 
         }
 
         function loadList() {
@@ -434,24 +442,20 @@
                 titleEl.innerText = doc.name;
                 currentId = doc.id;
                 updateLines();
-                _exitFiles(); // Sai do menu
+                _exitFiles(); 
             }
         }
 
         function delFile(id) {
             if (confirm("Eliminar projeto?")) {
                 localStorage.removeItem('phtml_' + id);
-                
-                // SE APAGAR O ARQUIVO ATUALMENTE ABERTO, LIMPA A TELA
                 if (currentId === id) {
                     codeInput.value = "";
                     titleEl.innerText = "Sem Título";
                     currentId = null;
                     updateLines();
                 }
-                
                 loadList();
-                // Nota: Não chamamos _exitFiles() aqui, o usuário continua na lista
             }
         }
 
