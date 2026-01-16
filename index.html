@@ -5,9 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>PocketHTML v15</title>
+    <title>PocketHTML v16</title>
     <style>
-        /* --- CONFIGURAÇÕES GERAIS --- */
+        /* --- CSS RESET & VARIAVEIS --- */
         :root {
             --bg-color: #1e1e1e;
             --sidebar-color: #252526;
@@ -19,7 +19,7 @@
             --danger-color: #ff453a;
             --code-font: 'Menlo', 'Courier New', monospace;
             --header-height: 50px;
-            --tab-height: 80px; /* Altura fixa da barra de baixo */
+            --tab-height: 80px; 
             --row-height: 24px; 
         }
 
@@ -31,16 +31,16 @@
             color: var(--text-color);
             margin: 0;
             height: 100vh;
-            height: -webkit-fill-available; /* Correção iOS */
+            height: -webkit-fill-available;
             width: 100vw;
             display: flex;
-            flex-direction: column; /* Organização Vertical Rigorosa */
+            flex-direction: column;
             overflow: hidden;
         }
 
-        /* --- 1. CABEÇALHO (FIXO NO TOPO) --- */
+        /* --- 1. CABEÇALHO --- */
         header {
-            flex: 0 0 auto; /* Não cresce nem encolhe */
+            flex: 0 0 auto;
             background-color: var(--sidebar-color);
             border-bottom: 1px solid #333;
             display: flex;
@@ -57,9 +57,9 @@
         button { background: none; border: none; font-size: 16px; cursor: pointer; }
         .btn-link { color: var(--accent-color); font-weight: 500; height: 100%; display: flex; align-items: center;}
 
-        /* --- 2. ÁREA CENTRAL (O RECHEIO FLEXÍVEL) --- */
+        /* --- 2. ÁREA CENTRAL (Flexivel) --- */
         #main-area {
-            flex: 1; /* Ocupa TODO o espaço disponível entre o Header e o TabBar */
+            flex: 1; 
             position: relative;
             overflow: hidden;
             display: flex;
@@ -68,7 +68,6 @@
             z-index: 1;
         }
 
-        /* EDITOR */
         #editor-container {
             display: flex;
             flex: 1;
@@ -108,15 +107,15 @@
             tab-size: 2;
         }
 
-        /* --- PREVIEW (CORRIGIDO: NÃO É MAIS ABSOLUTO) --- */
+        /* --- PREVIEW (CORRIGIDO) --- */
         #preview-container {
             display: none; 
             flex-direction: column;
-            background: #f2f2f7;
+            background: #f0f0f5; /* Fundo Cinza da App */
             z-index: 5;
-            /* IMPORTANTE: Altura 100% do pai (#main-area), não da tela toda */
             height: 100%; 
             width: 100%;
+            overflow: hidden;
         }
         
         .url-bar {
@@ -126,23 +125,17 @@
             flex: 0 0 auto;
         }
 
-        /* Wrapper do Iframe */
-        #iframe-wrapper {
-            flex: 1;
-            position: relative;
-            width: 100%;
-            overflow: hidden;
-            background: white;
-        }
-
+        /* O Iframe agora ocupa o espaço restante explicitamente */
         iframe { 
-            position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
-            width: 100%; height: 100%;
+            flex: 1;
+            width: 100%; 
+            height: 100%;
             border: none; 
+            background: white; /* Fundo Branco Obrigatório */
+            display: block;
         }
 
-        /* --- 3. TOOLBAR (TECLADO) --- */
+        /* --- 3. TOOLBAR --- */
         #toolbar {
             flex: 0 0 auto;
             height: 44px;
@@ -170,7 +163,7 @@
 
         /* --- 4. ABAS (FIXO NO FUNDO) --- */
         #tab-bar {
-            flex: 0 0 auto; /* Altura fixa, nunca sobrepõe */
+            flex: 0 0 auto;
             height: var(--tab-height); 
             background-color: var(--sidebar-color);
             border-top: 1px solid #333;
@@ -179,7 +172,7 @@
             align-items: flex-start;
             padding-top: 10px;
             padding-bottom: env(safe-area-inset-bottom);
-            z-index: 60; /* Fica acima de tudo, mas layout impede sobreposição */
+            z-index: 60;
         }
         
         .tab-item {
@@ -251,9 +244,7 @@
         
         <div id="preview-container">
             <div class="url-bar">🔒 Local Preview</div>
-            <div id="iframe-wrapper">
-                <iframe id="preview-frame"></iframe>
-            </div>
+            <iframe id="preview-frame"></iframe>
         </div>
     </div>
 
@@ -303,6 +294,7 @@
     <input type="file" id="json-input" accept=".json" style="display:none" onchange="importData(this)">
 
     <script>
+        // ELEMENTOS
         const overlay = document.getElementById('files-overlay');
         const editorContainer = document.getElementById('editor-container');
         const previewContainer = document.getElementById('preview-container');
@@ -353,7 +345,7 @@
             }
         }
 
-        // --- MODO PREVIEW (AJUSTE FINAL) ---
+        // --- MODO PREVIEW (RECONSTRUÇÃO ROBUSTA) ---
         function setMode(mode) {
             document.getElementById('tab-code').classList.remove('active');
             document.getElementById('tab-view').classList.remove('active');
@@ -369,27 +361,47 @@
                 previewContainer.style.display = 'flex'; 
                 toolbar.style.display = 'none'; 
                 
-                let content = codeInput.value.trim();
+                let rawCode = codeInput.value.trim();
+                if(!rawCode) rawCode = "<h1>Preview Vazio</h1><p>Escreve algum código para ver o resultado.</p>";
+
+                // ESPAÇADOR DE SEGURANÇA (120px)
+                // Inserimos isto sempre antes de fechar o body para garantir scroll
+                const spacer = '<div style="width:100%; height:120px; clear:both;"></div>';
                 
-                // 1. Garante que tem Viewport para não ficar pequeno
-                if(!content.includes('<meta name="viewport"')) {
-                    const viewportTag = '<meta name="viewport" content="width=device-width, initial-scale=1.0">';
-                    if(content.includes('<head>')) {
-                        content = content.replace('<head>', '<head>' + viewportTag);
-                    } else if(content.includes('<html>')) {
-                         content = content.replace('<html>', '<html><head>' + viewportTag + '</head>');
+                // CONSTRUÇÃO DO DOCUMENTO HTML
+                // Se o utilizador não colocou estrutura básica, nós criamos.
+                let finalHTML = "";
+                
+                if (rawCode.toLowerCase().includes('<html')) {
+                    // Se já tem HTML, tentamos injetar o spacer antes do body
+                    if (rawCode.toLowerCase().includes('</body>')) {
+                        finalHTML = rawCode.replace(/<\/body>/i, spacer + '</body>');
                     } else {
-                        content = viewportTag + content;
+                        finalHTML = rawCode + spacer;
                     }
+                    // Injeção de Viewport se faltar
+                    if (!finalHTML.includes('<meta name="viewport"')) {
+                         finalHTML = finalHTML.replace('<head>', '<head><meta name="viewport" content="width=device-width, initial-scale=1.0">');
+                    }
+                } else {
+                    // Se é só código solto, criamos o esqueleto
+                    finalHTML = `
+                        <!DOCTYPE html>
+                        <html>
+                        <head>
+                            <meta charset="utf-8">
+                            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                            <style>body { font-family: -apple-system, sans-serif; padding: 15px; margin: 0; }</style>
+                        </head>
+                        <body>
+                            ${rawCode}
+                            ${spacer}
+                        </body>
+                        </html>
+                    `;
                 }
 
-                // 2. Injeta ESPAÇO EXTRA no fundo do HTML (120px)
-                // Isto garante que o utilizador pode fazer scroll até ao fim sem nada cortar
-                content += '<div style="width:100%; height:120px; clear:both; pointer-events:none;"></div>';
-                
-                if(!codeInput.value.trim()) content = "<body style='padding:20px; font-family:sans-serif; text-align:center; color:#888'>Preview Vazio</body>";
-                
-                iframe.srcdoc = content;
+                iframe.srcdoc = finalHTML;
             }
         }
 
