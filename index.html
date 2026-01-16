@@ -21,46 +21,82 @@
             /* Dimensões Calculadas */
             --header-h: 50px;
             --toolbar-h: 44px;
-            --tab-h: 90px; /* Mais alto para compensar o iPhone */
+            --tab-h: 70px;
         }
 
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        * { 
+            box-sizing: border-box; 
+            -webkit-tap-highlight-color: transparent;
+        }
 
         body {
-            margin: 0; padding: 0;
+            margin: 0;
+            padding: 0;
             background-color: var(--bg-color);
             color: var(--text-color);
             font-family: -apple-system, sans-serif;
-            /* PRENDE A APP AO ECRÃ VISÍVEL */
             position: fixed; 
-            top: 0; left: 0; right: 0; bottom: 0;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
             overflow: hidden;
+            width: 100vw;
+            height: 100vh;
         }
 
         /* --- 1. CABEÇALHO --- */
         header {
-            position: absolute;
-            top: 0; left: 0; right: 0;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
             height: calc(var(--header-h) + env(safe-area-inset-top));
             padding-top: env(safe-area-inset-top);
             background-color: var(--sidebar-color);
             border-bottom: 1px solid #333;
-            display: flex; justify-content: space-between; align-items: center;
-            padding-left: 15px; padding-right: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-left: 15px;
+            padding-right: 15px;
             z-index: 100;
         }
 
-        h1 { font-size: 16px; margin: 0; color: white; font-weight: 600; }
-        button { background: none; border: none; font-size: 16px; cursor: pointer; }
-        .btn-link { color: var(--accent-color); font-weight: 500; height: 100%; display: flex; align-items: center; }
+        h1 { 
+            font-size: 16px;
+            margin: 0;
+            color: white;
+            font-weight: 600;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            max-width: 50%;
+        }
+        
+        button { 
+            background: none;
+            border: none;
+            font-size: 16px;
+            cursor: pointer;
+            padding: 8px;
+        }
+        
+        .btn-link { 
+            color: var(--accent-color);
+            font-weight: 500;
+            height: 100%;
+            display: flex;
+            align-items: center;
+        }
 
         /* --- 2. ÁREA DO EDITOR --- */
         #editor-area {
-            position: absolute;
+            position: fixed;
             top: calc(var(--header-h) + env(safe-area-inset-top));
-            /* O fundo termina ANTES da toolbar e das abas */
-            bottom: calc(var(--tab-h) + var(--toolbar-h)); 
-            left: 0; right: 0;
+            bottom: calc(var(--tab-h) + var(--toolbar-h) + env(safe-area-inset-bottom));
+            left: 0;
+            right: 0;
             display: flex;
             background-color: var(--bg-color);
             z-index: 10;
@@ -74,30 +110,36 @@
             font-size: 14px;
             line-height: 24px;
             text-align: right;
-            padding-top: 10px; padding-right: 5px;
+            padding-top: 10px;
+            padding-right: 5px;
             border-right: 1px solid #333;
             overflow: hidden;
+            user-select: none;
         }
 
         #code-input {
             flex: 1;
-            background: transparent; color: #fff;
-            font-family: var(--code-font); font-size: 14px;
+            background: transparent;
+            color: #fff;
+            font-family: var(--code-font);
+            font-size: 14px;
             line-height: 24px;
             border: none;
             padding: 10px;
-            resize: none; outline: none; white-space: pre;
-            overflow: auto; 
-            padding-bottom: 50px; /* Espaço extra no scroll */
+            resize: none;
+            outline: none;
+            white-space: pre;
+            overflow: auto;
+            -webkit-overflow-scrolling: touch;
         }
 
         /* --- 3. ÁREA DE PREVIEW --- */
         #preview-area {
-            position: absolute;
+            position: fixed;
             top: calc(var(--header-h) + env(safe-area-inset-top));
-            /* A preview vai até ao topo das abas (sem toolbar) */
-            bottom: var(--tab-h); 
-            left: 0; right: 0;
+            bottom: calc(var(--tab-h) + env(safe-area-inset-bottom));
+            left: 0;
+            right: 0;
             background-color: white;
             z-index: 20; 
             display: none;
@@ -105,88 +147,189 @@
         }
 
         .url-bar {
-            height: 30px; background: #f0f0f5; color: #333;
-            font-size: 12px; display: flex; align-items: center; justify-content: center;
-            border-bottom: 1px solid #ccc; flex-shrink: 0;
+            height: 30px;
+            background: #f0f0f5;
+            color: #333;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-bottom: 1px solid #ccc;
+            flex-shrink: 0;
         }
 
         iframe {
-            flex: 1; border: none; width: 100%; height: 100%; display: block;
+            flex: 1;
+            border: none;
+            width: 100%;
+            height: 100%;
+            display: block;
         }
 
         /* --- 4. TOOLBAR (ACIMA DAS ABAS) --- */
         #toolbar {
-            position: absolute;
-            /* Fica exatamente em cima das abas */
-            bottom: var(--tab-h); 
-            left: 0; right: 0;
+            position: fixed;
+            bottom: calc(var(--tab-h) + env(safe-area-inset-bottom));
+            left: 0;
+            right: 0;
             height: var(--toolbar-h);
             background-color: #2c2c2e;
             border-top: 1px solid #3a3a3c;
-            display: flex; align-items: center; gap: 10px; padding: 0 5px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 0 5px;
             overflow-x: auto;
+            overflow-y: hidden;
             z-index: 100;
+            -webkit-overflow-scrolling: touch;
         }
         
         .key-btn {
-            height: 34px; padding: 0 12px; background: #3a3a3c; color: white;
-            border-radius: 6px; font-weight: bold; font-family: var(--code-font);
-            font-size: 16px; display: flex; align-items: center; justify-content: center;
+            height: 34px;
+            padding: 0 12px;
+            background: #3a3a3c;
+            color: white;
+            border-radius: 6px;
+            font-weight: bold;
+            font-family: var(--code-font);
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             flex-shrink: 0;
+            white-space: nowrap;
         }
-        .action-key { font-size: 12px; text-transform: uppercase; }
-        .copy { background: rgba(48, 209, 88, 0.2); color: var(--success-color); }
-        .clear { background: rgba(255, 69, 58, 0.2); color: var(--danger-color); }
+        
+        .action-key { 
+            font-size: 12px;
+            text-transform: uppercase;
+        }
+        
+        .copy { 
+            background: rgba(48, 209, 88, 0.2);
+            color: var(--success-color);
+        }
+        
+        .clear { 
+            background: rgba(255, 69, 58, 0.2);
+            color: var(--danger-color);
+        }
 
         /* --- 5. ABAS (EM BAIXO) --- */
         #tab-bar {
-            position: absolute;
-            bottom: 0; left: 0; right: 0;
-            /* Altura fixa + Espaço seguro do iPhone */
-            height: var(--tab-h);
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: calc(var(--tab-h) + env(safe-area-inset-bottom));
             background-color: var(--sidebar-color);
             border-top: 1px solid #333;
-            display: flex; justify-content: space-around; align-items: flex-start;
+            display: flex;
+            justify-content: space-around;
+            align-items: flex-start;
             padding-top: 12px;
-            /* Empurra os ícones para cima da barra preta do iPhone */
-            padding-bottom: max(20px, env(safe-area-inset-bottom)); 
+            padding-bottom: env(safe-area-inset-bottom);
             z-index: 100;
         }
 
         .tab-item {
-            display: flex; flex-direction: column; align-items: center;
-            color: #888; background: none; width: 60px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: #888;
+            background: none;
+            width: 60px;
         }
-        .tab-icon { font-size: 24px; margin-bottom: 4px; }
-        .tab-label { font-size: 11px; font-weight: 500; }
-        .tab-item.active { color: var(--accent-color); }
+        
+        .tab-icon { 
+            font-size: 24px;
+            margin-bottom: 4px;
+        }
+        
+        .tab-label { 
+            font-size: 11px;
+            font-weight: 500;
+        }
+        
+        .tab-item.active { 
+            color: var(--accent-color);
+        }
 
         /* --- 6. ARQUIVOS (OVERLAY) --- */
         #files-overlay {
-            position: absolute; top: 0; left: 0; right: 0; bottom: 0;
-            background: var(--bg-color); z-index: 2000;
-            display: none; flex-direction: column;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: var(--bg-color);
+            z-index: 2000;
+            display: none;
+            flex-direction: column;
         }
+        
         .files-header {
             height: calc(var(--header-h) + env(safe-area-inset-top));
             padding-top: env(safe-area-inset-top);
-            background: var(--sidebar-color); border-bottom: 1px solid #333;
-            display: flex; justify-content: center; align-items: center; flex-shrink: 0;
-        }
-        .file-list { flex: 1; overflow-y: auto; }
-        .file-entry {
-            padding: 15px 20px; border-bottom: 1px solid #333;
-            background: #252526; display: flex; justify-content: space-between; align-items: center;
-        }
-        .backup-area {
-            padding: 20px; background: #1c1c1e; border-top: 1px solid #333;
-            /* Garante que o botão de backup não fica colado ao fundo */
-            padding-bottom: max(40px, env(safe-area-inset-bottom)); 
+            background: var(--sidebar-color);
+            border-bottom: 1px solid #333;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 15px;
             flex-shrink: 0;
         }
-        .full-btn { width: 100%; padding: 12px; border-radius: 8px; margin-bottom: 10px; font-weight: 600; }
-        .green { background: var(--success-color); color: #000; }
-        .orange { background: #ff9f0a; color: #000; }
+        
+        .file-list { 
+            flex: 1;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        
+        .file-entry {
+            padding: 15px 20px;
+            border-bottom: 1px solid #333;
+            background: #252526;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .backup-area {
+            padding: 20px;
+            background: #1c1c1e;
+            border-top: 1px solid #333;
+            padding-bottom: calc(20px + env(safe-area-inset-bottom));
+            flex-shrink: 0;
+        }
+        
+        .full-btn { 
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            font-weight: 600;
+            border: none;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        
+        .green { 
+            background: var(--success-color);
+            color: #000;
+        }
+        
+        .orange { 
+            background: #ff9f0a;
+            color: #000;
+        }
+        
+        .close-btn {
+            color: var(--accent-color);
+            font-size: 16px;
+            font-weight: 500;
+        }
 
     </style>
 </head>
@@ -216,9 +359,9 @@
         <button class="key-btn" onclick="ins('>')">&gt;</button>
         <button class="key-btn" onclick="ins('/')">/</button>
         <button class="key-btn" onclick="ins('=')">=</button>
-        <button class="key-btn" onclick="ins('"')">"</button>
+        <button class="key-btn" onclick="ins('\"')">\"</button>
         <button class="key-btn" onclick="ins('!')">!</button>
-        <button class="key-btn" onclick="ins('class=')">class</button>
+        <button class="key-btn" onclick="ins('class=\"\"')">class</button>
         <button class="key-btn" onclick="ins('<div></div>')">div</button>
     </div>
 
@@ -236,6 +379,7 @@
     <div id="files-overlay">
         <div class="files-header">
             <span style="font-weight:bold; font-size:18px; color:white;">Meus Projetos</span>
+            <button class="close-btn" onclick="closeFiles()">Fechar</button>
         </div>
         <div onclick="createFile()" style="padding:20px; border-bottom:1px solid #333; background:#252526; color:var(--accent-color); font-size:18px; font-weight:600; cursor:pointer; display:flex; gap:10px; align-items:center;">
             <span style="font-size:24px;">+</span> <span>Criar Novo Documento</span>
@@ -280,15 +424,18 @@
                 // Viewport Fix
                 if(!content.includes('<meta name="viewport"')) {
                     const vp = '<meta name="viewport" content="width=device-width, initial-scale=1.0">';
-                    if(content.includes('<head>')) content = content.replace('<head>', '<head>' + vp);
-                    else if(content.includes('<html>')) content = content.replace('<html>', '<html><head>' + vp + '</head>');
-                    else content = vp + content;
+                    if(content.includes('<head>')) {
+                        content = content.replace('<head>', '<head>' + vp);
+                    } else if(content.includes('<html>')) {
+                        content = content.replace('<html>', '<html><head>' + vp + '</head>');
+                    } else {
+                        content = vp + content;
+                    }
                 }
 
-                if(!content) content = "<div style='text-align:center; padding:50px; color:#555; font-family:sans-serif;'>Preview Vazio</div>";
-                
-                // Espaço extra no fundo da preview para scroll fácil
-                content += '<div style="height: 100px; width: 100%; clear: both;"></div>';
+                if(!content) {
+                    content = "<div style='text-align:center; padding:50px; color:#555; font-family:sans-serif;'>Preview Vazio</div>";
+                }
                 
                 iframe.srcdoc = content;
             }
@@ -298,7 +445,11 @@
             const lines = codeInput.value.split('\n').length;
             lineNums.innerHTML = Array.from({length: lines}, (_, i) => i + 1).join('<br>');
         };
-        codeInput.addEventListener('scroll', () => { lineNums.scrollTop = codeInput.scrollTop; });
+        
+        codeInput.addEventListener('scroll', () => { 
+            lineNums.scrollTop = codeInput.scrollTop;
+        });
+        
         codeInput.addEventListener('input', updateLines);
 
         function ins(txt) {
@@ -307,13 +458,33 @@
             const val = codeInput.value;
             codeInput.value = val.substring(0, start) + txt + val.substring(end);
             codeInput.selectionStart = codeInput.selectionEnd = start + txt.length;
-            if(txt.includes('></')) codeInput.selectionStart = start + txt.indexOf('></') + 1;
+            
+            if(txt.includes('></')) {
+                codeInput.selectionStart = start + txt.indexOf('></') + 1;
+            }
+            if(txt.includes('""')) {
+                codeInput.selectionStart = start + txt.indexOf('""') + 1;
+            }
+            
             codeInput.selectionEnd = codeInput.selectionStart;
             codeInput.focus();
             updateLines();
         }
-        function copyCode() { navigator.clipboard.writeText(codeInput.value); alert("Copiado!"); }
-        function clearCode() { if(confirm("Limpar?")) { codeInput.value = ""; updateLines(); } }
+        
+        function copyCode() { 
+            navigator.clipboard.writeText(codeInput.value).then(() => {
+                alert("Código copiado!");
+            }).catch(() => {
+                alert("Erro ao copiar");
+            });
+        }
+        
+        function clearCode() { 
+            if(confirm("Apagar todo o código?")) { 
+                codeInput.value = "";
+                updateLines();
+            }
+        }
 
         function openFiles() {
             loadList();
@@ -323,7 +494,6 @@
 
         function closeFiles() {
             overlay.style.display = 'none';
-            setMode('code');
         }
 
         function createFile() {
@@ -335,13 +505,20 @@
         }
 
         function saveDoc() {
-            let name = prompt("Nome:", titleEl.innerText === "Sem Título" ? "index.html" : titleEl.innerText);
+            let name = prompt("Nome do arquivo:", titleEl.innerText === "Sem Título" ? "index.html" : titleEl.innerText);
             if (!name) return;
             if (!currentId) currentId = Date.now().toString();
-            const doc = { id: currentId, name: name, content: codeInput.value, date: new Date().toLocaleDateString() };
+            
+            const doc = { 
+                id: currentId,
+                name: name,
+                content: codeInput.value,
+                date: new Date().toLocaleDateString('pt-PT')
+            };
+            
             localStorage.setItem('phtml_' + currentId, JSON.stringify(doc));
             titleEl.innerText = name;
-            alert("Salvo!");
+            alert("Documento salvo!");
             loadList();
         }
 
@@ -349,6 +526,7 @@
             const list = document.getElementById('saved-list');
             list.innerHTML = '';
             let count = 0;
+            
             for (let i = 0; i < localStorage.length; i++) {
                 const key = localStorage.key(i);
                 if (key.startsWith('phtml_')) {
@@ -366,7 +544,10 @@
                     list.appendChild(div);
                 }
             }
-            if (count === 0) list.innerHTML = '<div style="padding:30px; text-align:center; color:#555">Vazio</div>';
+            
+            if (count === 0) {
+                list.innerHTML = '<div style="padding:30px; text-align:center; color:#555">Nenhum documento salvo</div>';
+            }
         }
 
         function loadFile(id) {
@@ -381,34 +562,75 @@
         }
 
         function delFile(id) {
-            if (confirm("Apagar?")) {
+            if (confirm("Apagar este documento permanentemente?")) {
                 localStorage.removeItem('phtml_' + id);
-                if (currentId === id) createFile();
+                if (currentId === id) {
+                    createFile();
+                }
                 loadList();
             }
         }
 
         function exportData() {
             const data = [];
-            for(let i=0; i<localStorage.length; i++) if(localStorage.key(i).startsWith('phtml_')) data.push(JSON.parse(localStorage.getItem(localStorage.key(i))));
-            if(data.length === 0) return alert("Nada para salvar.");
-            const blob = new Blob([JSON.stringify(data)], {type: "application/json"});
+            for(let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if(key.startsWith('phtml_')) {
+                    data.push(JSON.parse(localStorage.getItem(key)));
+                }
+            }
+            
+            if(data.length === 0) {
+                return alert("Nenhum documento para fazer backup.");
+            }
+            
+            const blob = new Blob([JSON.stringify(data, null, 2)], {type: "application/json"});
             const url = URL.createObjectURL(blob);
-            const a = document.createElement('a'); a.href = url; a.download = `backup.json`;
-            document.body.appendChild(a); a.click(); setTimeout(()=>document.body.removeChild(a),0);
+            const a = document.createElement('a');
+            const date = new Date().toISOString().split('T')[0];
+            a.href = url;
+            a.download = `pockethtml-backup-${date}.json`;
+            document.body.appendChild(a);
+            a.click();
+            setTimeout(() => {
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }, 100);
         }
-        function importTrigger() { document.getElementById('json-input').click(); }
+        
+        function importTrigger() { 
+            document.getElementById('json-input').click();
+        }
+        
         function importData(input) {
-            const f = input.files[0]; if(!f) return;
-            const r = new FileReader();
-            r.onload = e => {
+            const file = input.files[0];
+            if(!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = e => {
                 try {
-                    const d = JSON.parse(e.target.result);
-                    if(Array.isArray(d)) { d.forEach(x => localStorage.setItem('phtml_'+x.id, JSON.stringify(x))); alert("Restaurado!"); loadList(); }
-                } catch(err) { alert("Erro."); }
-            }; r.readAsText(f); input.value = '';
+                    const data = JSON.parse(e.target.result);
+                    if(Array.isArray(data)) {
+                        data.forEach(doc => {
+                            if(doc.id && doc.name && doc.content) {
+                                localStorage.setItem('phtml_' + doc.id, JSON.stringify(doc));
+                            }
+                        });
+                        alert("Backup restaurado com sucesso!");
+                        loadList();
+                    } else {
+                        alert("Formato de backup inválido.");
+                    }
+                } catch(err) {
+                    alert("Erro ao ler o arquivo de backup.");
+                }
+            };
+            reader.readAsText(file);
+            input.value = '';
         }
 
+        // Inicialização
+        updateLines();
         openFiles();
     </script>
 </body>
