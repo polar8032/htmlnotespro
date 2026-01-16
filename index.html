@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>PocketHTML v17</title>
+    <title>PocketHTML v18</title>
     <style>
         :root {
             --bg-color: #1e1e1e;
@@ -18,10 +18,10 @@
             --danger-color: #ff453a;
             --code-font: 'Menlo', 'Courier New', monospace;
             
-            /* Dimensões Fixas */
+            /* Dimensões Calculadas */
             --header-h: 50px;
             --toolbar-h: 44px;
-            --tab-h: 80px;
+            --tab-h: 90px; /* Mais alto para compensar o iPhone */
         }
 
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -31,12 +31,13 @@
             background-color: var(--bg-color);
             color: var(--text-color);
             font-family: -apple-system, sans-serif;
-            height: 100vh; width: 100vw;
-            overflow: hidden; /* Nada mexe fora do sítio */
-            position: fixed; /* Prende o corpo ao ecrã */
+            /* PRENDE A APP AO ECRÃ VISÍVEL */
+            position: fixed; 
+            top: 0; left: 0; right: 0; bottom: 0;
+            overflow: hidden;
         }
 
-        /* --- 1. CABEÇALHO (FIXO NO TOPO) --- */
+        /* --- 1. CABEÇALHO --- */
         header {
             position: absolute;
             top: 0; left: 0; right: 0;
@@ -53,12 +54,12 @@
         button { background: none; border: none; font-size: 16px; cursor: pointer; }
         .btn-link { color: var(--accent-color); font-weight: 500; height: 100%; display: flex; align-items: center; }
 
-        /* --- 2. EDITOR (POSICIONAMENTO ABSOLUTO) --- */
-        /* Ocupa o espaço entre o Header e a Toolbar */
+        /* --- 2. ÁREA DO EDITOR --- */
         #editor-area {
             position: absolute;
             top: calc(var(--header-h) + env(safe-area-inset-top));
-            bottom: calc(var(--tab-h) + var(--toolbar-h) + env(safe-area-inset-bottom));
+            /* O fundo termina ANTES da toolbar e das abas */
+            bottom: calc(var(--tab-h) + var(--toolbar-h)); 
             left: 0; right: 0;
             display: flex;
             background-color: var(--bg-color);
@@ -86,19 +87,20 @@
             border: none;
             padding: 10px;
             resize: none; outline: none; white-space: pre;
-            overflow: auto; /* Scroll acontece aqui */
+            overflow: auto; 
+            padding-bottom: 50px; /* Espaço extra no scroll */
         }
 
-        /* --- 3. PREVIEW (POSICIONAMENTO ABSOLUTO) --- */
-        /* Ocupa o espaço entre o Header e as ABAS (Ganha o espaço da toolbar) */
+        /* --- 3. ÁREA DE PREVIEW --- */
         #preview-area {
             position: absolute;
             top: calc(var(--header-h) + env(safe-area-inset-top));
-            bottom: calc(var(--tab-h) + env(safe-area-inset-bottom)); /* Vai mais fundo que o editor */
+            /* A preview vai até ao topo das abas (sem toolbar) */
+            bottom: var(--tab-h); 
             left: 0; right: 0;
             background-color: white;
-            z-index: 20; /* Fica acima do editor quando visivel */
-            display: none; /* Escondido por padrão */
+            z-index: 20; 
+            display: none;
             flex-direction: column;
         }
 
@@ -115,7 +117,8 @@
         /* --- 4. TOOLBAR (ACIMA DAS ABAS) --- */
         #toolbar {
             position: absolute;
-            bottom: calc(var(--tab-h) + env(safe-area-inset-bottom));
+            /* Fica exatamente em cima das abas */
+            bottom: var(--tab-h); 
             left: 0; right: 0;
             height: var(--toolbar-h);
             background-color: #2c2c2e;
@@ -135,16 +138,18 @@
         .copy { background: rgba(48, 209, 88, 0.2); color: var(--success-color); }
         .clear { background: rgba(255, 69, 58, 0.2); color: var(--danger-color); }
 
-        /* --- 5. ABAS (FIXO NO FUNDO) --- */
+        /* --- 5. ABAS (EM BAIXO) --- */
         #tab-bar {
             position: absolute;
             bottom: 0; left: 0; right: 0;
-            height: calc(var(--tab-h) + env(safe-area-inset-bottom));
-            padding-bottom: env(safe-area-inset-bottom);
+            /* Altura fixa + Espaço seguro do iPhone */
+            height: var(--tab-h);
             background-color: var(--sidebar-color);
             border-top: 1px solid #333;
-            display: flex; justify-content: space-around; align-items: start;
-            padding-top: 10px;
+            display: flex; justify-content: space-around; align-items: flex-start;
+            padding-top: 12px;
+            /* Empurra os ícones para cima da barra preta do iPhone */
+            padding-bottom: max(20px, env(safe-area-inset-bottom)); 
             z-index: 100;
         }
 
@@ -156,13 +161,12 @@
         .tab-label { font-size: 11px; font-weight: 500; }
         .tab-item.active { color: var(--accent-color); }
 
-        /* --- 6. OVERLAY ARQUIVOS --- */
+        /* --- 6. ARQUIVOS (OVERLAY) --- */
         #files-overlay {
             position: absolute; top: 0; left: 0; right: 0; bottom: 0;
             background: var(--bg-color); z-index: 2000;
             display: none; flex-direction: column;
         }
-        /* Header dos arquivos igual ao principal */
         .files-header {
             height: calc(var(--header-h) + env(safe-area-inset-top));
             padding-top: env(safe-area-inset-top);
@@ -176,14 +180,13 @@
         }
         .backup-area {
             padding: 20px; background: #1c1c1e; border-top: 1px solid #333;
-            padding-bottom: max(30px, env(safe-area-inset-bottom)); flex-shrink: 0;
+            /* Garante que o botão de backup não fica colado ao fundo */
+            padding-bottom: max(40px, env(safe-area-inset-bottom)); 
+            flex-shrink: 0;
         }
         .full-btn { width: 100%; padding: 12px; border-radius: 8px; margin-bottom: 10px; font-weight: 600; }
         .green { background: var(--success-color); color: #000; }
         .orange { background: #ff9f0a; color: #000; }
-
-        /* Helpers */
-        .hidden { display: none !important; }
 
     </style>
 </head>
@@ -257,28 +260,24 @@
         
         let currentId = null;
 
-        // --- MODO DE VISUALIZAÇÃO ---
         function setMode(mode) {
             document.getElementById('tab-code').classList.remove('active');
             document.getElementById('tab-view').classList.remove('active');
 
             if (mode === 'code') {
-                // MOSTRAR CÓDIGO
                 document.getElementById('tab-code').classList.add('active');
                 editorArea.style.display = 'flex';
                 toolbar.style.display = 'flex';
                 previewArea.style.display = 'none';
             } else {
-                // MOSTRAR PREVIEW
                 document.getElementById('tab-view').classList.add('active');
                 editorArea.style.display = 'none';
-                toolbar.style.display = 'none'; // Esconde a toolbar para dar espaço
+                toolbar.style.display = 'none'; 
                 previewArea.style.display = 'flex';
                 
-                // Renderização Limpa
                 let content = codeInput.value.trim();
                 
-                // Injeção de Viewport se faltar (Para o texto não ficar pequeno)
+                // Viewport Fix
                 if(!content.includes('<meta name="viewport"')) {
                     const vp = '<meta name="viewport" content="width=device-width, initial-scale=1.0">';
                     if(content.includes('<head>')) content = content.replace('<head>', '<head>' + vp);
@@ -288,14 +287,13 @@
 
                 if(!content) content = "<div style='text-align:center; padding:50px; color:#555; font-family:sans-serif;'>Preview Vazio</div>";
                 
-                // Adiciona espaço no fundo para scroll seguro
+                // Espaço extra no fundo da preview para scroll fácil
                 content += '<div style="height: 100px; width: 100%; clear: both;"></div>';
                 
                 iframe.srcdoc = content;
             }
         }
 
-        // --- EDITOR ---
         const updateLines = () => {
             const lines = codeInput.value.split('\n').length;
             lineNums.innerHTML = Array.from({length: lines}, (_, i) => i + 1).join('<br>');
@@ -317,11 +315,9 @@
         function copyCode() { navigator.clipboard.writeText(codeInput.value); alert("Copiado!"); }
         function clearCode() { if(confirm("Limpar?")) { codeInput.value = ""; updateLines(); } }
 
-        // --- ARQUIVOS ---
         function openFiles() {
             loadList();
             overlay.style.display = 'flex';
-            document.getElementById('main-header').style.zIndex = '100'; // Header normal
             codeInput.blur();
         }
 
@@ -413,7 +409,6 @@
             }; r.readAsText(f); input.value = '';
         }
 
-        // Start
         openFiles();
     </script>
 </body>
