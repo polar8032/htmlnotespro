@@ -5,9 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>PocketHTML v16</title>
+    <title>PocketHTML v17</title>
     <style>
-        /* --- CSS RESET & VARIAVEIS --- */
         :root {
             --bg-color: #1e1e1e;
             --sidebar-color: #252526;
@@ -18,62 +17,52 @@
             --success-color: #30d158;
             --danger-color: #ff453a;
             --code-font: 'Menlo', 'Courier New', monospace;
-            --header-height: 50px;
-            --tab-height: 80px; 
-            --row-height: 24px; 
+            
+            /* Dimensões Fixas */
+            --header-h: 50px;
+            --toolbar-h: 44px;
+            --tab-h: 80px;
         }
 
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+            margin: 0; padding: 0;
             background-color: var(--bg-color);
             color: var(--text-color);
-            margin: 0;
-            height: 100vh;
-            height: -webkit-fill-available;
-            width: 100vw;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
+            font-family: -apple-system, sans-serif;
+            height: 100vh; width: 100vw;
+            overflow: hidden; /* Nada mexe fora do sítio */
+            position: fixed; /* Prende o corpo ao ecrã */
         }
 
-        /* --- 1. CABEÇALHO --- */
+        /* --- 1. CABEÇALHO (FIXO NO TOPO) --- */
         header {
-            flex: 0 0 auto;
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: calc(var(--header-h) + env(safe-area-inset-top));
+            padding-top: env(safe-area-inset-top);
             background-color: var(--sidebar-color);
             border-bottom: 1px solid #333;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0 15px;
-            height: calc(var(--header-height) + env(safe-area-inset-top)); 
-            padding-top: env(safe-area-inset-top);
-            z-index: 50;
-            position: relative;
+            display: flex; justify-content: space-between; align-items: center;
+            padding-left: 15px; padding-right: 15px;
+            z-index: 100;
         }
 
         h1 { font-size: 16px; margin: 0; color: white; font-weight: 600; }
         button { background: none; border: none; font-size: 16px; cursor: pointer; }
-        .btn-link { color: var(--accent-color); font-weight: 500; height: 100%; display: flex; align-items: center;}
+        .btn-link { color: var(--accent-color); font-weight: 500; height: 100%; display: flex; align-items: center; }
 
-        /* --- 2. ÁREA CENTRAL (Flexivel) --- */
-        #main-area {
-            flex: 1; 
-            position: relative;
-            overflow: hidden;
+        /* --- 2. EDITOR (POSICIONAMENTO ABSOLUTO) --- */
+        /* Ocupa o espaço entre o Header e a Toolbar */
+        #editor-area {
+            position: absolute;
+            top: calc(var(--header-h) + env(safe-area-inset-top));
+            bottom: calc(var(--tab-h) + var(--toolbar-h) + env(safe-area-inset-bottom));
+            left: 0; right: 0;
             display: flex;
-            flex-direction: column;
             background-color: var(--bg-color);
-            z-index: 1;
-        }
-
-        #editor-container {
-            display: flex;
-            flex: 1;
-            height: 100%;
-            overflow: hidden;
-            position: relative;
+            z-index: 10;
         }
 
         #line-numbers {
@@ -82,99 +71,83 @@
             color: var(--line-num-text);
             font-family: var(--code-font);
             font-size: 14px;
-            line-height: var(--row-height);
+            line-height: 24px;
             text-align: right;
-            padding-top: 10px;
-            padding-right: 5px;
+            padding-top: 10px; padding-right: 5px;
             border-right: 1px solid #333;
-            overflow: hidden; 
-            user-select: none;
+            overflow: hidden;
         }
 
         #code-input {
             flex: 1;
-            background: transparent;
-            color: #fff;
-            font-family: var(--code-font);
-            font-size: 14px;
-            line-height: var(--row-height);
+            background: transparent; color: #fff;
+            font-family: var(--code-font); font-size: 14px;
+            line-height: 24px;
             border: none;
-            padding: 10px 10px 50px 10px;
-            resize: none;
-            outline: none;
-            white-space: pre;
-            overflow: auto;
-            tab-size: 2;
+            padding: 10px;
+            resize: none; outline: none; white-space: pre;
+            overflow: auto; /* Scroll acontece aqui */
         }
 
-        /* --- PREVIEW (CORRIGIDO) --- */
-        #preview-container {
-            display: none; 
+        /* --- 3. PREVIEW (POSICIONAMENTO ABSOLUTO) --- */
+        /* Ocupa o espaço entre o Header e as ABAS (Ganha o espaço da toolbar) */
+        #preview-area {
+            position: absolute;
+            top: calc(var(--header-h) + env(safe-area-inset-top));
+            bottom: calc(var(--tab-h) + env(safe-area-inset-bottom)); /* Vai mais fundo que o editor */
+            left: 0; right: 0;
+            background-color: white;
+            z-index: 20; /* Fica acima do editor quando visivel */
+            display: none; /* Escondido por padrão */
             flex-direction: column;
-            background: #f0f0f5; /* Fundo Cinza da App */
-            z-index: 5;
-            height: 100%; 
-            width: 100%;
-            overflow: hidden;
         }
-        
+
         .url-bar {
-            background: #fff; padding: 8px; text-align: center;
-            font-size: 12px; color: #333; border-bottom: 1px solid #ccc;
-            font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 5px;
-            flex: 0 0 auto;
+            height: 30px; background: #f0f0f5; color: #333;
+            font-size: 12px; display: flex; align-items: center; justify-content: center;
+            border-bottom: 1px solid #ccc; flex-shrink: 0;
         }
 
-        /* O Iframe agora ocupa o espaço restante explicitamente */
-        iframe { 
-            flex: 1;
-            width: 100%; 
-            height: 100%;
-            border: none; 
-            background: white; /* Fundo Branco Obrigatório */
-            display: block;
+        iframe {
+            flex: 1; border: none; width: 100%; height: 100%; display: block;
         }
 
-        /* --- 3. TOOLBAR --- */
+        /* --- 4. TOOLBAR (ACIMA DAS ABAS) --- */
         #toolbar {
-            flex: 0 0 auto;
-            height: 44px;
+            position: absolute;
+            bottom: calc(var(--tab-h) + env(safe-area-inset-bottom));
+            left: 0; right: 0;
+            height: var(--toolbar-h);
             background-color: #2c2c2e;
             border-top: 1px solid #3a3a3c;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 0 5px;
+            display: flex; align-items: center; gap: 10px; padding: 0 5px;
             overflow-x: auto;
-            z-index: 50;
-            -webkit-overflow-scrolling: touch;
+            z-index: 100;
         }
-        #toolbar::-webkit-scrollbar { display: none; }
-
+        
         .key-btn {
             height: 34px; padding: 0 12px; background: #3a3a3c; color: white;
             border-radius: 6px; font-weight: bold; font-family: var(--code-font);
             font-size: 16px; display: flex; align-items: center; justify-content: center;
             flex-shrink: 0;
         }
-        .action-key { font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .action-key { font-size: 12px; text-transform: uppercase; }
         .copy { background: rgba(48, 209, 88, 0.2); color: var(--success-color); }
         .clear { background: rgba(255, 69, 58, 0.2); color: var(--danger-color); }
 
-        /* --- 4. ABAS (FIXO NO FUNDO) --- */
+        /* --- 5. ABAS (FIXO NO FUNDO) --- */
         #tab-bar {
-            flex: 0 0 auto;
-            height: var(--tab-height); 
+            position: absolute;
+            bottom: 0; left: 0; right: 0;
+            height: calc(var(--tab-h) + env(safe-area-inset-bottom));
+            padding-bottom: env(safe-area-inset-bottom);
             background-color: var(--sidebar-color);
             border-top: 1px solid #333;
-            display: none; 
-            justify-content: space-around;
-            align-items: flex-start;
+            display: flex; justify-content: space-around; align-items: start;
             padding-top: 10px;
-            padding-bottom: env(safe-area-inset-bottom);
-            z-index: 60;
+            z-index: 100;
         }
-        
+
         .tab-item {
             display: flex; flex-direction: column; align-items: center;
             color: #888; background: none; width: 60px;
@@ -183,69 +156,53 @@
         .tab-label { font-size: 11px; font-weight: 500; }
         .tab-item.active { color: var(--accent-color); }
 
-        /* --- 5. OVERLAY ARQUIVOS --- */
+        /* --- 6. OVERLAY ARQUIVOS --- */
         #files-overlay {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: var(--bg-color);
-            z-index: 2000;
-            display: flex;
-            flex-direction: column;
+            position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+            background: var(--bg-color); z-index: 2000;
+            display: none; flex-direction: column;
         }
-
+        /* Header dos arquivos igual ao principal */
         .files-header {
-            flex: 0 0 auto;
-            height: calc(var(--header-height) + env(safe-area-inset-top)); 
-            padding: 0 15px; padding-top: env(safe-area-inset-top);
+            height: calc(var(--header-h) + env(safe-area-inset-top));
+            padding-top: env(safe-area-inset-top);
             background: var(--sidebar-color); border-bottom: 1px solid #333;
-            display: flex; justify-content: center; align-items: center;
+            display: flex; justify-content: center; align-items: center; flex-shrink: 0;
         }
-
-        .new-btn {
-            padding: 20px; border-bottom: 1px solid #333;
-            background: #252526; color: var(--accent-color);
-            font-size: 18px; font-weight: 600; cursor: pointer;
-            display: flex; align-items: center; gap: 10px; flex-shrink: 0;
-        }
-
-        .file-list { flex: 1; overflow-y: auto; background: var(--bg-color); }
-
+        .file-list { flex: 1; overflow-y: auto; }
         .file-entry {
             padding: 15px 20px; border-bottom: 1px solid #333;
             background: #252526; display: flex; justify-content: space-between; align-items: center;
         }
-
         .backup-area {
             padding: 20px; background: #1c1c1e; border-top: 1px solid #333;
             padding-bottom: max(30px, env(safe-area-inset-bottom)); flex-shrink: 0;
         }
-
         .full-btn { width: 100%; padding: 12px; border-radius: 8px; margin-bottom: 10px; font-weight: 600; }
         .green { background: var(--success-color); color: #000; }
         .orange { background: #ff9f0a; color: #000; }
 
+        /* Helpers */
         .hidden { display: none !important; }
 
     </style>
 </head>
 <body>
 
-    <header>
-        <button class="btn-link" id="btn-files">📂 Arquivos</button>
+    <header id="main-header">
+        <button class="btn-link" onclick="openFiles()">📂 Arquivos</button>
         <h1 id="doc-title">Sem Título</h1>
-        <button class="btn-link" id="btn-save">Salvar</button>
+        <button class="btn-link" id="btn-save" onclick="saveDoc()">Salvar</button>
     </header>
 
-    <div id="main-area">
-        <div id="editor-container">
-            <div id="line-numbers">1</div>
-            <textarea id="code-input" spellcheck="false" autocomplete="off" autocapitalize="off"></textarea>
-        </div>
-        
-        <div id="preview-container">
-            <div class="url-bar">🔒 Local Preview</div>
-            <iframe id="preview-frame"></iframe>
-        </div>
+    <div id="editor-area">
+        <div id="line-numbers">1</div>
+        <textarea id="code-input" spellcheck="false" autocomplete="off" autocapitalize="off"></textarea>
+    </div>
+
+    <div id="preview-area">
+        <div class="url-bar">🔒 Local Preview</div>
+        <iframe id="preview-frame"></iframe>
     </div>
 
     <div id="toolbar">
@@ -277,173 +234,119 @@
         <div class="files-header">
             <span style="font-weight:bold; font-size:18px; color:white;">Meus Projetos</span>
         </div>
-
-        <div class="new-btn" onclick="createFile()">
-            <span style="font-size: 24px;">+</span>
-            <span>Criar Novo Documento</span>
+        <div onclick="createFile()" style="padding:20px; border-bottom:1px solid #333; background:#252526; color:var(--accent-color); font-size:18px; font-weight:600; cursor:pointer; display:flex; gap:10px; align-items:center;">
+            <span style="font-size:24px;">+</span> <span>Criar Novo Documento</span>
         </div>
-
         <div class="file-list" id="saved-list"></div>
-
         <div class="backup-area">
             <button class="full-btn green" onclick="exportData()">⬇ Baixar Backup</button>
             <button class="full-btn orange" onclick="importTrigger()">⬆ Restaurar Backup</button>
         </div>
     </div>
-
     <input type="file" id="json-input" accept=".json" style="display:none" onchange="importData(this)">
 
     <script>
-        // ELEMENTOS
+        const editorArea = document.getElementById('editor-area');
+        const previewArea = document.getElementById('preview-area');
+        const toolbar = document.getElementById('toolbar');
         const overlay = document.getElementById('files-overlay');
-        const editorContainer = document.getElementById('editor-container');
-        const previewContainer = document.getElementById('preview-container');
         const codeInput = document.getElementById('code-input');
         const lineNums = document.getElementById('line-numbers');
-        const tabBar = document.getElementById('tab-bar');
-        const toolbar = document.getElementById('toolbar');
         const iframe = document.getElementById('preview-frame');
         const titleEl = document.getElementById('doc-title');
-        const saveBtn = document.getElementById('btn-save');
-
+        
         let currentId = null;
 
-        // --- SINCRONIA ---
+        // --- MODO DE VISUALIZAÇÃO ---
+        function setMode(mode) {
+            document.getElementById('tab-code').classList.remove('active');
+            document.getElementById('tab-view').classList.remove('active');
+
+            if (mode === 'code') {
+                // MOSTRAR CÓDIGO
+                document.getElementById('tab-code').classList.add('active');
+                editorArea.style.display = 'flex';
+                toolbar.style.display = 'flex';
+                previewArea.style.display = 'none';
+            } else {
+                // MOSTRAR PREVIEW
+                document.getElementById('tab-view').classList.add('active');
+                editorArea.style.display = 'none';
+                toolbar.style.display = 'none'; // Esconde a toolbar para dar espaço
+                previewArea.style.display = 'flex';
+                
+                // Renderização Limpa
+                let content = codeInput.value.trim();
+                
+                // Injeção de Viewport se faltar (Para o texto não ficar pequeno)
+                if(!content.includes('<meta name="viewport"')) {
+                    const vp = '<meta name="viewport" content="width=device-width, initial-scale=1.0">';
+                    if(content.includes('<head>')) content = content.replace('<head>', '<head>' + vp);
+                    else if(content.includes('<html>')) content = content.replace('<html>', '<html><head>' + vp + '</head>');
+                    else content = vp + content;
+                }
+
+                if(!content) content = "<div style='text-align:center; padding:50px; color:#555; font-family:sans-serif;'>Preview Vazio</div>";
+                
+                // Adiciona espaço no fundo para scroll seguro
+                content += '<div style="height: 100px; width: 100%; clear: both;"></div>';
+                
+                iframe.srcdoc = content;
+            }
+        }
+
+        // --- EDITOR ---
         const updateLines = () => {
-            const val = codeInput.value;
-            const lines = val.split('\n').length;
+            const lines = codeInput.value.split('\n').length;
             lineNums.innerHTML = Array.from({length: lines}, (_, i) => i + 1).join('<br>');
         };
         codeInput.addEventListener('scroll', () => { lineNums.scrollTop = codeInput.scrollTop; });
         codeInput.addEventListener('input', updateLines);
 
-        // --- INSERÇÃO ---
         function ins(txt) {
             const start = codeInput.selectionStart;
             const end = codeInput.selectionEnd;
             const val = codeInput.value;
             codeInput.value = val.substring(0, start) + txt + val.substring(end);
             codeInput.selectionStart = codeInput.selectionEnd = start + txt.length;
-            if(txt.includes('></')) {
-                codeInput.selectionStart = start + txt.indexOf('></') + 1;
-                codeInput.selectionEnd = codeInput.selectionStart;
-            }
+            if(txt.includes('></')) codeInput.selectionStart = start + txt.indexOf('></') + 1;
+            codeInput.selectionEnd = codeInput.selectionStart;
             codeInput.focus();
             updateLines();
         }
-
-        function copyCode() {
-            if(!codeInput.value) return;
-            navigator.clipboard.writeText(codeInput.value);
-            alert("Copiado!");
-        }
-
-        function clearCode() {
-            if(confirm("Apagar tudo?")) {
-                codeInput.value = "";
-                updateLines();
-            }
-        }
-
-        // --- MODO PREVIEW (RECONSTRUÇÃO ROBUSTA) ---
-        function setMode(mode) {
-            document.getElementById('tab-code').classList.remove('active');
-            document.getElementById('tab-view').classList.remove('active');
-
-            if (mode === 'code') {
-                document.getElementById('tab-code').classList.add('active');
-                previewContainer.style.display = 'none'; 
-                editorContainer.style.display = 'flex';  
-                toolbar.style.display = 'flex';
-            } else {
-                document.getElementById('tab-view').classList.add('active');
-                editorContainer.style.display = 'none';  
-                previewContainer.style.display = 'flex'; 
-                toolbar.style.display = 'none'; 
-                
-                let rawCode = codeInput.value.trim();
-                if(!rawCode) rawCode = "<h1>Preview Vazio</h1><p>Escreve algum código para ver o resultado.</p>";
-
-                // ESPAÇADOR DE SEGURANÇA (120px)
-                // Inserimos isto sempre antes de fechar o body para garantir scroll
-                const spacer = '<div style="width:100%; height:120px; clear:both;"></div>';
-                
-                // CONSTRUÇÃO DO DOCUMENTO HTML
-                // Se o utilizador não colocou estrutura básica, nós criamos.
-                let finalHTML = "";
-                
-                if (rawCode.toLowerCase().includes('<html')) {
-                    // Se já tem HTML, tentamos injetar o spacer antes do body
-                    if (rawCode.toLowerCase().includes('</body>')) {
-                        finalHTML = rawCode.replace(/<\/body>/i, spacer + '</body>');
-                    } else {
-                        finalHTML = rawCode + spacer;
-                    }
-                    // Injeção de Viewport se faltar
-                    if (!finalHTML.includes('<meta name="viewport"')) {
-                         finalHTML = finalHTML.replace('<head>', '<head><meta name="viewport" content="width=device-width, initial-scale=1.0">');
-                    }
-                } else {
-                    // Se é só código solto, criamos o esqueleto
-                    finalHTML = `
-                        <!DOCTYPE html>
-                        <html>
-                        <head>
-                            <meta charset="utf-8">
-                            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                            <style>body { font-family: -apple-system, sans-serif; padding: 15px; margin: 0; }</style>
-                        </head>
-                        <body>
-                            ${rawCode}
-                            ${spacer}
-                        </body>
-                        </html>
-                    `;
-                }
-
-                iframe.srcdoc = finalHTML;
-            }
-        }
+        function copyCode() { navigator.clipboard.writeText(codeInput.value); alert("Copiado!"); }
+        function clearCode() { if(confirm("Limpar?")) { codeInput.value = ""; updateLines(); } }
 
         // --- ARQUIVOS ---
         function openFiles() {
             loadList();
-            overlay.classList.remove('hidden');
-            tabBar.style.display = 'none';
-            toolbar.style.display = 'none';
-            saveBtn.style.visibility = 'hidden';
-            codeInput.blur(); 
+            overlay.style.display = 'flex';
+            document.getElementById('main-header').style.zIndex = '100'; // Header normal
+            codeInput.blur();
         }
 
-        function _exitFiles() {
-            overlay.classList.add('hidden');
-            tabBar.style.display = 'flex'; 
-            toolbar.style.display = 'flex';
-            saveBtn.style.visibility = 'visible';
+        function closeFiles() {
+            overlay.style.display = 'none';
             setMode('code');
         }
-
-        document.getElementById('btn-files').addEventListener('click', openFiles);
-        saveBtn.addEventListener('click', saveDoc);
 
         function createFile() {
             codeInput.value = "";
             titleEl.innerText = "Sem Título";
             currentId = null;
             updateLines();
-            _exitFiles(); 
+            closeFiles();
         }
 
         function saveDoc() {
-            let name = prompt("Nome do Projeto:", titleEl.innerText === "Sem Título" ? "index.html" : titleEl.innerText);
+            let name = prompt("Nome:", titleEl.innerText === "Sem Título" ? "index.html" : titleEl.innerText);
             if (!name) return;
             if (!currentId) currentId = Date.now().toString();
-            
             const doc = { id: currentId, name: name, content: codeInput.value, date: new Date().toLocaleDateString() };
             localStorage.setItem('phtml_' + currentId, JSON.stringify(doc));
             titleEl.innerText = name;
             alert("Salvo!");
-            loadList(); 
+            loadList();
         }
 
         function loadList() {
@@ -467,7 +370,7 @@
                     list.appendChild(div);
                 }
             }
-            if (count === 0) list.innerHTML = '<div style="padding:30px; text-align:center; color:#555">Nenhum projeto salvo.</div>';
+            if (count === 0) list.innerHTML = '<div style="padding:30px; text-align:center; color:#555">Vazio</div>';
         }
 
         function loadFile(id) {
@@ -477,57 +380,41 @@
                 titleEl.innerText = doc.name;
                 currentId = doc.id;
                 updateLines();
-                _exitFiles(); 
+                closeFiles();
             }
         }
 
         function delFile(id) {
-            if (confirm("Eliminar projeto?")) {
+            if (confirm("Apagar?")) {
                 localStorage.removeItem('phtml_' + id);
-                if (currentId === id) {
-                    codeInput.value = "";
-                    titleEl.innerText = "Sem Título";
-                    currentId = null;
-                    updateLines();
-                }
+                if (currentId === id) createFile();
                 loadList();
             }
         }
 
         function exportData() {
             const data = [];
-            for(let i=0; i<localStorage.length; i++) {
-                if(localStorage.key(i).startsWith('phtml_')) data.push(JSON.parse(localStorage.getItem(localStorage.key(i))));
-            }
+            for(let i=0; i<localStorage.length; i++) if(localStorage.key(i).startsWith('phtml_')) data.push(JSON.parse(localStorage.getItem(localStorage.key(i))));
             if(data.length === 0) return alert("Nada para salvar.");
             const blob = new Blob([JSON.stringify(data)], {type: "application/json"});
             const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url; a.download = `backup_${new Date().toISOString().slice(0,10)}.json`;
-            document.body.appendChild(a); a.click();
-            setTimeout(()=> document.body.removeChild(a), 0);
+            const a = document.createElement('a'); a.href = url; a.download = `backup.json`;
+            document.body.appendChild(a); a.click(); setTimeout(()=>document.body.removeChild(a),0);
         }
         function importTrigger() { document.getElementById('json-input').click(); }
         function importData(input) {
-            const f = input.files[0];
-            if(!f) return;
+            const f = input.files[0]; if(!f) return;
             const r = new FileReader();
             r.onload = e => {
                 try {
                     const d = JSON.parse(e.target.result);
-                    if(Array.isArray(d)) {
-                        d.forEach(x => localStorage.setItem('phtml_'+x.id, JSON.stringify(x)));
-                        alert("Restaurado!");
-                        loadList();
-                    }
-                } catch(err) { alert("Erro no arquivo."); }
-            };
-            r.readAsText(f);
-            input.value = '';
+                    if(Array.isArray(d)) { d.forEach(x => localStorage.setItem('phtml_'+x.id, JSON.stringify(x))); alert("Restaurado!"); loadList(); }
+                } catch(err) { alert("Erro."); }
+            }; r.readAsText(f); input.value = '';
         }
 
-        openFiles(); 
-
+        // Start
+        openFiles();
     </script>
 </body>
 </html>
