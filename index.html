@@ -5,638 +5,417 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>PocketHTML</title>
+    <title>PocketHTML iOS</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-
         :root {
-            /* Dark Theme Colors */
-            --bg-primary: #0a0a0a;
-            --bg-secondary: #1a1a1a;
-            --bg-tertiary: #2a2a2a;
-            --surface: #161616;
-            --surface-elevated: #202020;
+            /* iOS System Colors (Dark Mode) */
+            --ios-bg: #000000;
+            --ios-secondary-bg: #1c1c1e;
+            --ios-tertiary-bg: #2c2c2e;
+            --ios-separator: #38383a;
+            --ios-blue: #0a84ff;
+            --ios-red: #ff453a;
+            --ios-green: #30d158;
+            --ios-orange: #ff9f0a;
+            --ios-gray-text: #8e8e93;
+            --ios-white: #ffffff;
             
-            /* Text Colors */
-            --text-primary: #ffffff;
-            --text-secondary: #a0a0a0;
-            --text-tertiary: #707070;
-            
-            /* Accent Colors */
-            --accent-blue: #0a84ff;
-            --accent-purple: #bf5af2;
-            --accent-pink: #ff375f;
-            --accent-green: #30d158;
-            --accent-orange: #ff9f0a;
-            
-            /* Gradient */
-            --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            --gradient-secondary: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-            --gradient-code: linear-gradient(180deg, #1a1a1a 0%, #0a0a0a 100%);
-            
-            /* Shadows */
-            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
-            --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.4);
-            --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.5);
-            --glow-blue: 0 0 20px rgba(10, 132, 255, 0.3);
-            --glow-purple: 0 0 20px rgba(191, 90, 242, 0.3);
-            
-            /* Fonts */
-            --font-system: 'Inter', -apple-system, sans-serif;
-            --font-code: 'SF Mono', 'Menlo', 'Monaco', 'Courier New', monospace;
-            
+            /* Glassmorphism Variables */
+            --glass-bg: rgba(30, 30, 30, 0.85);
+            --glass-border: rgba(255, 255, 255, 0.15);
+            --blur-amt: 20px;
+
             /* Dimensions */
-            --header-h: 56px;
-            --toolbar-h: 50px;
-            --tab-h: 75px;
-            --border-radius: 16px;
+            --header-h: 44px; /* Standard iOS Navbar height */
+            --toolbar-h: 48px;
+            --tab-h: 83px; /* Standard iOS Tabbar height (incl home indicator) */
+            
+            --code-font: 'Menlo', 'Courier New', monospace;
         }
 
         * { 
-            box-sizing: border-box;
+            box-sizing: border-box; 
             -webkit-tap-highlight-color: transparent;
-            margin: 0;
-            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         }
 
         body {
-            background: var(--bg-primary);
-            color: var(--text-primary);
-            font-family: var(--font-system);
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
+            margin: 0;
+            background-color: var(--ios-bg);
+            color: var(--ios-white);
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
             overflow: hidden;
-            width: 100vw;
-            height: 100vh;
         }
 
-        /* === HEADER === */
+        /* --- UI COMPONENTS: Buttons & Inputs --- */
+        button { border: none; background: none; cursor: pointer; }
+        
+        /* iOS Toggle Switch style buttons */
+        .ios-btn {
+            color: var(--ios-blue);
+            font-size: 17px;
+            font-weight: 400;
+            padding: 8px 16px;
+            transition: opacity 0.2s;
+        }
+        .ios-btn:active { opacity: 0.5; }
+        .ios-btn.bold { font-weight: 600; }
+
+        /* --- 1. HEADER (Navigation Bar) --- */
         header {
             position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
+            top: 0; left: 0; right: 0;
             height: calc(var(--header-h) + env(safe-area-inset-top));
             padding-top: env(safe-area-inset-top);
-            background: var(--surface-elevated);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            background-color: var(--glass-bg);
+            backdrop-filter: blur(var(--blur-amt));
+            -webkit-backdrop-filter: blur(var(--blur-amt));
+            border-bottom: 0.5px solid var(--glass-border);
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding-left: 20px;
-            padding-right: 20px;
             z-index: 100;
-            box-shadow: var(--shadow-sm);
+            padding-left: 8px;
+            padding-right: 8px;
         }
 
         h1 { 
             font-size: 17px;
             font-weight: 600;
-            color: var(--text-primary);
+            color: var(--ios-white);
+            margin: 0;
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            max-width: 50%;
+            white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-            white-space: nowrap;
-            max-width: 50%;
-            letter-spacing: -0.3px;
-        }
-        
-        button { 
-            background: none;
-            border: none;
-            cursor: pointer;
-            padding: 8px 12px;
-            border-radius: 8px;
-            transition: all 0.2s ease;
-            font-family: var(--font-system);
-        }
-        
-        .btn-link { 
-            color: var(--accent-blue);
-            font-weight: 600;
-            font-size: 15px;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-        
-        .btn-link:active {
-            transform: scale(0.95);
-            opacity: 0.7;
         }
 
-        /* === EDITOR AREA === */
+        /* --- 2. EDITOR AREA --- */
         #editor-area {
             position: fixed;
-            top: calc(var(--header-h) + env(safe-area-inset-top));
-            bottom: calc(var(--tab-h) + var(--toolbar-h) + env(safe-area-inset-bottom));
-            left: 0;
-            right: 0;
+            top: 0; /* Starts at top but padded by header */
+            bottom: 0;
+            left: 0; right: 0;
+            padding-top: calc(var(--header-h) + env(safe-area-inset-top));
+            padding-bottom: calc(var(--tab-h) + var(--toolbar-h) + env(safe-area-inset-bottom));
             display: flex;
-            background: var(--gradient-code);
+            background-color: var(--ios-bg);
             z-index: 10;
         }
 
         #line-numbers {
-            width: 50px;
-            background: rgba(255, 255, 255, 0.02);
-            color: var(--text-tertiary);
-            font-family: var(--font-code);
+            width: 40px;
+            background-color: var(--ios-bg);
+            color: #555;
+            font-family: var(--code-font);
             font-size: 13px;
             line-height: 22px;
             text-align: right;
-            padding-top: 12px;
+            padding-top: 15px;
             padding-right: 8px;
-            border-right: 1px solid rgba(255, 255, 255, 0.05);
-            overflow: hidden;
+            border-right: 0.5px solid #333;
             user-select: none;
-            font-weight: 500;
         }
 
         #code-input {
             flex: 1;
             background: transparent;
-            color: #e8e8e8;
-            font-family: var(--font-code);
-            font-size: 14px;
+            color: #d1d1d1;
+            font-family: var(--code-font);
+            font-size: 13px;
             line-height: 22px;
             border: none;
-            padding: 12px 16px;
+            padding: 15px 10px;
             resize: none;
             outline: none;
             white-space: pre;
             overflow: auto;
             -webkit-overflow-scrolling: touch;
         }
+        
+        /* Custom Scrollbar hide */
+        #code-input::-webkit-scrollbar { display: none; }
 
-        #code-input::selection {
-            background: rgba(10, 132, 255, 0.3);
-        }
-
-        /* === PREVIEW AREA === */
+        /* --- 3. PREVIEW AREA --- */
         #preview-area {
             position: fixed;
-            top: calc(var(--header-h) + env(safe-area-inset-top));
+            top: 0;
             bottom: calc(var(--tab-h) + env(safe-area-inset-bottom));
-            left: 0;
-            right: 0;
-            background: #ffffff;
-            z-index: 20;
+            left: 0; right: 0;
+            padding-top: calc(var(--header-h) + env(safe-area-inset-top));
+            background-color: var(--ios-bg);
+            z-index: 20; 
             display: none;
             flex-direction: column;
         }
 
         .url-bar {
-            height: 38px;
-            background: linear-gradient(180deg, #f8f8f8 0%, #f0f0f0 100%);
-            color: #666;
+            height: 36px;
+            background: #2c2c2e;
+            color: #999;
             font-size: 13px;
-            font-weight: 500;
             display: flex;
             align-items: center;
             justify-content: center;
-            border-bottom: 1px solid #e0e0e0;
+            margin: 10px;
+            border-radius: 10px;
             flex-shrink: 0;
-            gap: 6px;
-            letter-spacing: 0.2px;
         }
 
         iframe {
             flex: 1;
             border: none;
-            width: 100%;
-            height: 100%;
-            display: block;
             background: white;
+            width: 100%;
         }
 
-        /* === TOOLBAR === */
+        /* --- 4. TOOLBAR (Accessory View) --- */
         #toolbar {
             position: fixed;
             bottom: calc(var(--tab-h) + env(safe-area-inset-bottom));
-            left: 0;
-            right: 0;
+            left: 0; right: 0;
             height: var(--toolbar-h);
-            background: var(--surface-elevated);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            background-color: #2a2a2c; /* Keyboard gray */
+            backdrop-filter: blur(var(--blur-amt));
+            -webkit-backdrop-filter: blur(var(--blur-amt));
             display: flex;
             align-items: center;
-            gap: 8px;
-            padding: 0 12px;
+            gap: 6px;
+            padding: 0 6px;
             overflow-x: auto;
-            overflow-y: hidden;
             z-index: 100;
-            -webkit-overflow-scrolling: touch;
+            box-shadow: 0 -0.5px 0 rgba(0,0,0,0.3);
         }
+        
+        /* Hide scrollbar in toolbar */
+        #toolbar::-webkit-scrollbar { display: none; }
         
         .key-btn {
             height: 36px;
-            min-width: 36px;
-            padding: 0 14px;
-            background: var(--bg-tertiary);
-            color: var(--text-primary);
-            border-radius: 10px;
-            font-weight: 600;
-            font-family: var(--font-code);
+            min-width: 32px;
+            padding: 0 10px;
+            background: rgba(255,255,255,0.15);
+            color: white;
+            border-radius: 5px;
+            font-family: var(--code-font);
             font-size: 15px;
             display: flex;
             align-items: center;
             justify-content: center;
             flex-shrink: 0;
-            white-space: nowrap;
-            transition: all 0.2s ease;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 1px 0 rgba(0,0,0,0.5);
+            margin-top: 2px;
         }
         
-        .key-btn:active {
-            transform: scale(0.95);
-            opacity: 0.8;
-        }
+        .key-btn:active { background: rgba(255,255,255,0.3); transform: translateY(1px); box-shadow: none;}
         
-        .action-key { 
-            font-size: 13px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            font-weight: 700;
-        }
-        
-        .copy { 
-            background: linear-gradient(135deg, rgba(48, 209, 88, 0.15) 0%, rgba(48, 209, 88, 0.25) 100%);
-            color: var(--accent-green);
-            border: 1px solid rgba(48, 209, 88, 0.3);
-        }
-        
-        .clear { 
-            background: linear-gradient(135deg, rgba(255, 69, 58, 0.15) 0%, rgba(255, 69, 58, 0.25) 100%);
-            color: var(--accent-pink);
-            border: 1px solid rgba(255, 69, 58, 0.3);
-        }
+        .action-key { font-family: -apple-system; font-size: 13px; font-weight: 500;}
+        .copy { color: var(--ios-green); background: rgba(48, 209, 88, 0.15); }
+        .clear { color: var(--ios-red); background: rgba(255, 69, 58, 0.15); }
 
-        .divider {
-            width: 1px;
-            height: 24px;
-            background: linear-gradient(180deg, transparent 0%, rgba(255, 255, 255, 0.1) 50%, transparent 100%);
-            margin: 0 4px;
-            flex-shrink: 0;
-        }
-
-        /* === TAB BAR === */
+        /* --- 5. TAB BAR (Bottom Navigation) --- */
         #tab-bar {
             position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
+            bottom: 0; left: 0; right: 0;
             height: calc(var(--tab-h) + env(safe-area-inset-bottom));
-            background: var(--surface);
-            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            padding-bottom: env(safe-area-inset-bottom);
+            background-color: var(--glass-bg);
+            backdrop-filter: blur(var(--blur-amt));
+            -webkit-backdrop-filter: blur(var(--blur-amt));
+            border-top: 0.5px solid var(--glass-border);
             display: flex;
             justify-content: space-around;
             align-items: flex-start;
-            padding-top: 10px;
-            padding-bottom: env(safe-area-inset-bottom);
+            padding-top: 8px;
             z-index: 100;
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
         }
 
         .tab-item {
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
-            color: var(--text-tertiary);
-            background: none;
-            flex: 1;
-            gap: 6px;
-            transition: all 0.3s ease;
-            position: relative;
-            padding: 8px;
+            color: #888;
+            width: 70px;
+            transition: color 0.2s;
         }
         
-        .tab-icon { 
-            font-size: 26px;
-            transition: all 0.3s ease;
-            filter: grayscale(1);
-        }
+        .tab-icon { font-size: 26px; margin-bottom: 2px; }
+        .tab-label { font-size: 10px; font-weight: 500; letter-spacing: 0.2px;}
         
-        .tab-label { 
-            font-size: 11px;
-            font-weight: 600;
-            letter-spacing: 0.3px;
-            transition: all 0.3s ease;
-        }
-        
-        .tab-item.active {
-            color: var(--accent-blue);
-        }
-        
-        .tab-item.active .tab-icon {
-            filter: grayscale(0);
-            transform: scale(1.1);
-        }
-        
-        .tab-item.active::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 40px;
-            height: 3px;
-            background: var(--gradient-primary);
-            border-radius: 0 0 3px 3px;
-        }
+        .tab-item.active { color: var(--ios-blue); }
 
-        /* === FILES OVERLAY === */
+        /* --- 6. FILES MODAL (iOS Sheet Style) --- */
         #files-overlay {
             position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: var(--bg-primary);
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: var(--ios-bg);
             z-index: 2000;
-            display: none;
+            display: flex;
             flex-direction: column;
+            transform: translateY(100%);
+            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1); /* iOS Slide feel */
         }
         
+        #files-overlay.open { transform: translateY(0); }
+        
         .files-header {
-            height: calc(var(--header-h) + env(safe-area-inset-top));
+            height: calc(56px + env(safe-area-inset-top));
             padding-top: env(safe-area-inset-top);
-            background: var(--surface-elevated);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            background: var(--ios-secondary-bg);
+            border-bottom: 0.5px solid var(--ios-separator);
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 0 20px;
+            padding-left: 16px; 
+            padding-right: 16px;
             flex-shrink: 0;
-            box-shadow: var(--shadow-sm);
         }
         
-        .files-header-title {
-            font-weight: 700;
-            font-size: 20px;
-            color: var(--text-primary);
-            letter-spacing: -0.5px;
-            background: var(--gradient-primary);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-        
-        .new-file-btn {
-            padding: 18px 20px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-            background: linear-gradient(135deg, rgba(10, 132, 255, 0.1) 0%, rgba(191, 90, 242, 0.1) 100%);
-            color: var(--accent-blue);
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            display: flex;
-            gap: 12px;
-            align-items: center;
-            transition: all 0.3s ease;
-            border-left: 3px solid transparent;
-        }
-        
-        .new-file-btn:active {
-            background: linear-gradient(135deg, rgba(10, 132, 255, 0.15) 0%, rgba(191, 90, 242, 0.15) 100%);
-            border-left-color: var(--accent-blue);
-        }
-        
-        .new-file-icon {
-            font-size: 28px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 40px;
-            height: 40px;
-            background: rgba(10, 132, 255, 0.15);
-            border-radius: 12px;
-        }
-        
+        .modal-title { font-weight: 600; font-size: 17px; }
+
         .file-list { 
             flex: 1;
             overflow-y: auto;
             -webkit-overflow-scrolling: touch;
+            padding: 20px 16px;
+            background: var(--ios-bg);
         }
         
+        /* Inset Grouped List Style */
+        .list-section-title {
+            color: var(--ios-gray-text);
+            font-size: 13px;
+            text-transform: uppercase;
+            margin: 0 0 8px 10px;
+        }
+
+        .create-btn {
+            background: var(--ios-secondary-bg);
+            border-radius: 10px;
+            padding: 14px;
+            display: flex;
+            align-items: center;
+            color: var(--ios-blue);
+            font-size: 17px;
+            font-weight: 400;
+            margin-bottom: 24px;
+        }
+
         .file-entry {
-            padding: 18px 20px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-            background: var(--surface);
+            background: var(--ios-secondary-bg);
+            padding: 16px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            transition: all 0.2s ease;
+            border-bottom: 0.5px solid #333;
         }
         
-        .file-entry:active {
-            background: var(--surface-elevated);
-        }
+        /* Rounded corners for first and last items in group */
+        .file-group { border-radius: 10px; overflow: hidden; margin-bottom: 20px; }
+        .file-entry:last-child { border-bottom: none; }
         
-        .file-info {
-            flex: 1;
-            cursor: pointer;
-        }
-        
-        .file-name {
-            font-weight: 600;
-            font-size: 16px;
-            color: var(--text-primary);
-            margin-bottom: 6px;
-            letter-spacing: -0.2px;
-        }
-        
-        .file-date {
-            font-size: 13px;
-            color: var(--text-tertiary);
-            font-weight: 500;
-        }
+        .file-info { flex: 1; }
+        .file-name { font-size: 17px; color: white; margin-bottom: 4px; }
+        .file-date { font-size: 14px; color: var(--ios-gray-text); }
         
         .delete-btn {
-            font-size: 20px;
-            color: var(--accent-pink);
-            padding: 12px;
-            border-radius: 10px;
-            transition: all 0.2s ease;
+            color: var(--ios-red);
+            padding: 10px;
+            font-size: 18px;
         }
-        
-        .delete-btn:active {
-            background: rgba(255, 69, 58, 0.1);
-            transform: scale(0.9);
-        }
-        
+
         .backup-area {
-            padding: 20px;
-            background: var(--surface-elevated);
-            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            background: var(--ios-secondary-bg);
+            padding: 20px 16px;
             padding-bottom: calc(20px + env(safe-area-inset-bottom));
-            flex-shrink: 0;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
+            border-top: 0.5px solid var(--ios-separator);
         }
         
-        .full-btn { 
+        .ios-full-btn {
             width: 100%;
-            padding: 16px;
-            border-radius: 14px;
-            font-weight: 700;
-            border: none;
-            font-size: 16px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            letter-spacing: 0.3px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            box-shadow: var(--shadow-sm);
-        }
-        
-        .full-btn:active {
-            transform: scale(0.98);
-        }
-        
-        .green { 
-            background: linear-gradient(135deg, var(--accent-green) 0%, #28c74a 100%);
-            color: #000;
-        }
-        
-        .orange { 
-            background: linear-gradient(135deg, var(--accent-orange) 0%, #ff8800 100%);
-            color: #000;
-        }
-        
-        .close-btn {
-            color: var(--accent-blue);
-            font-size: 16px;
+            padding: 14px;
+            border-radius: 12px;
+            font-size: 17px;
             font-weight: 600;
-        }
-
-        .empty-state {
-            padding: 60px 30px;
-            text-align: center;
-            color: var(--text-tertiary);
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
         
-        .empty-icon {
-            font-size: 64px;
-            margin-bottom: 16px;
-            opacity: 0.3;
-        }
-        
-        .empty-text {
-            font-size: 15px;
-            font-weight: 500;
-        }
-
-        /* === ANIMATIONS === */
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        
-        .fade-in {
-            animation: fadeIn 0.3s ease;
-        }
-
-        /* === SCROLLBAR STYLING === */
-        ::-webkit-scrollbar {
-            width: 4px;
-            height: 4px;
-        }
-        
-        ::-webkit-scrollbar-track {
-            background: transparent;
-        }
-        
-        ::-webkit-scrollbar-thumb {
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 10px;
-        }
-        
-        ::-webkit-scrollbar-thumb:hover {
-            background: rgba(255, 255, 255, 0.3);
-        }
+        .btn-green { background: var(--ios-green); color: white; }
+        .btn-gray { background: var(--ios-tertiary-bg); color: var(--ios-blue); }
 
     </style>
 </head>
 <body>
 
     <header id="main-header">
-        <button class="btn-link" onclick="openFiles()">
-            <span>📁</span>
-            <span>Projetos</span>
+        <button class="ios-btn" onclick="openFiles()">
+            <span style="font-size:20px; margin-right:2px">📂</span>
         </button>
         <h1 id="doc-title">Sem Título</h1>
-        <button class="btn-link" id="btn-save" onclick="saveDoc()">Salvar</button>
+        <button class="ios-btn bold" id="btn-save" onclick="saveDoc()">Salvar</button>
     </header>
 
     <div id="editor-area">
         <div id="line-numbers">1</div>
-        <textarea id="code-input" spellcheck="false" autocomplete="off" autocapitalize="off" placeholder="<!-- Escreva seu código HTML aqui -->"></textarea>
+        <textarea id="code-input" spellcheck="false" autocomplete="off" autocapitalize="off"></textarea>
     </div>
 
     <div id="preview-area">
-        <div class="url-bar">
-            <span>🔒</span>
-            <span>Preview Local</span>
-        </div>
+        <div class="url-bar">🔒 Local Preview</div>
         <iframe id="preview-frame"></iframe>
     </div>
 
     <div id="toolbar">
-        <button class="key-btn action-key copy" onclick="copyCode()">📋 Copiar</button>
-        <button class="key-btn action-key clear" onclick="clearCode()">🗑️ Limpar</button>
-        <div class="divider"></div>
+        <button class="key-btn action-key copy" onclick="copyCode()">Copy</button>
+        <button class="key-btn action-key clear" onclick="clearCode()">Clear</button>
+        <div style="width:1px; height:20px; background:rgba(255,255,255,0.1); margin:0 5px;"></div>
         <button class="key-btn" onclick="ins('<')">&lt;</button>
         <button class="key-btn" onclick="ins('>')">&gt;</button>
         <button class="key-btn" onclick="ins('/')">/</button>
         <button class="key-btn" onclick="ins('=')">=</button>
         <button class="key-btn" onclick="ins('\"')">\"</button>
         <button class="key-btn" onclick="ins('!')">!</button>
-        <button class="key-btn" onclick="ins('class=\"\"')">class</button>
-        <button class="key-btn" onclick="ins('<div></div>')">div</button>
+        <button class="key-btn" style="min-width:50px" onclick="ins('class=\"\"')">class</button>
+        <button class="key-btn" style="min-width:40px" onclick="ins('<div></div>')">div</button>
     </div>
 
     <div id="tab-bar">
         <button class="tab-item active" id="tab-code" onclick="setMode('code')">
-            <span class="tab-icon">💻</span>
-            <span class="tab-label">EDITOR</span>
+            <div class="tab-icon"></div> 
+            <span class="tab-label">Editor</span>
         </button>
         <button class="tab-item" id="tab-view" onclick="setMode('view')">
-            <span class="tab-icon">👁️</span>
-            <span class="tab-label">PREVIEW</span>
+            <div class="tab-icon">👁️</div>
+            <span class="tab-label">Preview</span>
         </button>
     </div>
 
     <div id="files-overlay">
         <div class="files-header">
-            <span class="files-header-title">Meus Projetos</span>
-            <button class="close-btn" onclick="closeFiles()">Fechar</button>
+            <button class="ios-btn" onclick="closeFiles()">Cancelar</button>
+            <span class="modal-title">Meus Projetos</span>
+            <div style="width:50px"></div> </div>
+
+        <div class="file-list">
+            <div class="create-btn" onclick="createFile()">
+                <span style="font-size:22px; margin-right:12px; font-weight:300">+</span> 
+                Novo Documento
+            </div>
+
+            <div class="list-section-title">Salvos Recentemente</div>
+            <div id="saved-list-container" class="file-group">
+                </div>
         </div>
-        <div class="new-file-btn" onclick="createFile()">
-            <div class="new-file-icon">+</div>
-            <span>Criar Novo Documento</span>
-        </div>
-        <div class="file-list" id="saved-list"></div>
+
         <div class="backup-area">
-            <button class="full-btn green" onclick="exportData()">
-                <span>⬇</span>
-                <span>Baixar Backup</span>
-            </button>
-            <button class="full-btn orange" onclick="importTrigger()">
-                <span>⬆</span>
-                <span>Restaurar Backup</span>
-            </button>
+            <button class="ios-full-btn btn-green" onclick="exportData()">⬇ Backup (JSON)</button>
+            <button class="ios-full-btn btn-gray" onclick="importTrigger()">⬆ Restaurar</button>
         </div>
     </div>
     <input type="file" id="json-input" accept=".json" style="display:none" onchange="importData(this)">
@@ -670,6 +449,7 @@
                 
                 let content = codeInput.value.trim();
                 
+                // Viewport Fix
                 if(!content.includes('<meta name="viewport"')) {
                     const vp = '<meta name="viewport" content="width=device-width, initial-scale=1.0">';
                     if(content.includes('<head>')) {
@@ -682,13 +462,7 @@
                 }
 
                 if(!content) {
-                    content = `
-                        <div style="display: flex; align-items: center; justify-content: center; height: 100vh; font-family: -apple-system, sans-serif; color: #999; text-align: center; flex-direction: column; gap: 20px;">
-                            <div style="font-size: 72px; opacity: 0.3;">👀</div>
-                            <div style="font-size: 18px; font-weight: 600;">Preview Vazio</div>
-                            <div style="font-size: 14px; color: #666;">Escreva algum código para visualizar</div>
-                        </div>
-                    `;
+                    content = "<div style='text-align:center; padding:50px; color:#8e8e93; font-family:-apple-system, sans-serif;'>Preview Vazio</div>";
                 }
                 
                 iframe.srcdoc = content;
@@ -727,21 +501,16 @@
         
         function copyCode() { 
             navigator.clipboard.writeText(codeInput.value).then(() => {
-                const btn = event.target;
-                const originalText = btn.innerHTML;
-                btn.innerHTML = '✅ Copiado!';
-                btn.style.background = 'linear-gradient(135deg, rgba(48, 209, 88, 0.3) 0%, rgba(48, 209, 88, 0.4) 100%)';
-                setTimeout(() => {
-                    btn.innerHTML = originalText;
-                    btn.style.background = '';
-                }, 2000);
-            }).catch(() => {
-                alert("Erro ao copiar");
+                // Could replace with a toast
+                titleEl.innerText = "Copiado!";
+                setTimeout(() => { 
+                    titleEl.innerText = currentId ? JSON.parse(localStorage.getItem('phtml_' + currentId)).name : "Sem Título"; 
+                }, 1500);
             });
         }
         
         function clearCode() { 
-            if(confirm("Apagar todo o código atual?")) { 
+            if(confirm("Deseja limpar todo o editor?")) { 
                 codeInput.value = "";
                 updateLines();
             }
@@ -750,12 +519,18 @@
         function openFiles() {
             loadList();
             overlay.style.display = 'flex';
-            overlay.classList.add('fade-in');
+            // Slight delay to allow display flex to apply before transform
+            setTimeout(() => {
+                overlay.classList.add('open');
+            }, 10);
             codeInput.blur();
         }
 
         function closeFiles() {
-            overlay.style.display = 'none';
+            overlay.classList.remove('open');
+            setTimeout(() => {
+                overlay.style.display = 'none';
+            }, 300); // Wait for transition
         }
 
         function createFile() {
@@ -775,52 +550,48 @@
                 id: currentId,
                 name: name,
                 content: codeInput.value,
-                date: new Date().toLocaleDateString('pt-PT')
+                date: new Date().toLocaleDateString('pt-BR')
             };
             
             localStorage.setItem('phtml_' + currentId, JSON.stringify(doc));
             titleEl.innerText = name;
-            
-            const btn = event.target;
-            const originalText = btn.innerHTML;
-            btn.innerHTML = '✅ Salvo!';
-            setTimeout(() => {
-                btn.innerHTML = originalText;
-            }, 2000);
-            
             loadList();
         }
 
         function loadList() {
-            const list = document.getElementById('saved-list');
-            list.innerHTML = '';
+            const listContainer = document.getElementById('saved-list-container');
+            listContainer.innerHTML = '';
             let count = 0;
             
+            // Collect and Sort
+            let docs = [];
             for (let i = 0; i < localStorage.length; i++) {
                 const key = localStorage.key(i);
                 if (key.startsWith('phtml_')) {
-                    count++;
-                    const doc = JSON.parse(localStorage.getItem(key));
-                    const div = document.createElement('div');
-                    div.className = 'file-entry';
-                    div.innerHTML = `
-                        <div class="file-info" onclick="loadFile('${doc.id}')">
-                            <div class="file-name">📄 ${doc.name}</div>
-                            <div class="file-date">Atualizado: ${doc.date}</div>
-                        </div>
-                        <button class="delete-btn" onclick="delFile('${doc.id}')">🗑️</button>
-                    `;
-                    list.appendChild(div);
+                    docs.push(JSON.parse(localStorage.getItem(key)));
                 }
             }
+            docs.sort((a,b) => b.id - a.id); // Newest first
+
+            docs.forEach(doc => {
+                count++;
+                const div = document.createElement('div');
+                div.className = 'file-entry';
+                div.innerHTML = `
+                    <div class="file-info" onclick="loadFile('${doc.id}')">
+                        <div class="file-name">${doc.name}</div>
+                        <div class="file-date">${doc.date}</div>
+                    </div>
+                    <div class="delete-btn" onclick="delFile('${doc.id}')">✕</div>
+                `;
+                listContainer.appendChild(div);
+            });
             
             if (count === 0) {
-                list.innerHTML = `
-                    <div class="empty-state">
-                        <div class="empty-icon">📭</div>
-                        <div class="empty-text">Nenhum documento salvo ainda</div>
-                    </div>
-                `;
+                listContainer.innerHTML = '<div style="padding:20px; text-align:center; color:#555">Nenhum projeto salvo</div>';
+                listContainer.style.background = 'transparent';
+            } else {
+                listContainer.style.background = '#1c1c1e';
             }
         }
 
@@ -836,5 +607,68 @@
         }
 
         function delFile(id) {
-            if (confirm("Apagar este documento permanentemente?")) {
-                localStorage.removeItem('p
+            if (confirm("Apagar permanentemente?")) {
+                localStorage.removeItem('phtml_' + id);
+                if (currentId === id) {
+                    titleEl.innerText = "Sem Título";
+                    currentId = null;
+                }
+                loadList();
+            }
+        }
+
+        function exportData() {
+            const data = [];
+            for(let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if(key.startsWith('phtml_')) {
+                    data.push(JSON.parse(localStorage.getItem(key)));
+                }
+            }
+            
+            if(data.length === 0) return alert("Nada para exportar.");
+            
+            const blob = new Blob([JSON.stringify(data, null, 2)], {type: "application/json"});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `backup-ios-${new Date().toISOString().slice(0,10)}.json`;
+            document.body.appendChild(a);
+            a.click();
+            setTimeout(() => { document.body.removeChild(a); }, 100);
+        }
+        
+        function importTrigger() { 
+            document.getElementById('json-input').click();
+        }
+        
+        function importData(input) {
+            const file = input.files[0];
+            if(!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = e => {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    if(Array.isArray(data)) {
+                        data.forEach(doc => {
+                            if(doc.id && doc.name && doc.content) {
+                                localStorage.setItem('phtml_' + doc.id, JSON.stringify(doc));
+                            }
+                        });
+                        alert("Restaurado com sucesso.");
+                        loadList();
+                    }
+                } catch(err) {
+                    alert("Erro no arquivo.");
+                }
+            };
+            reader.readAsText(file);
+            input.value = '';
+        }
+
+        // Init
+        updateLines();
+    </script>
+</body>
+</html>
