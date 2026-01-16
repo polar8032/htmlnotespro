@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>PocketHTML v10</title>
+    <title>PocketHTML v11</title>
     <style>
         /* --- CONFIGURAÇÕES GERAIS --- */
         :root {
@@ -30,50 +30,48 @@
             color: var(--text-color);
             margin: 0;
             height: 100vh;
-            height: -webkit-fill-available; /* Correção iOS */
+            height: -webkit-fill-available; /* Correção crítica para iOS */
             width: 100vw;
             display: flex;
-            flex-direction: column; /* Organiza verticalmente: Header -> Main -> Footer */
+            flex-direction: column;
             overflow: hidden;
         }
 
-        /* --- 1. CABEÇALHO (Agora ocupa espaço real) --- */
+        /* --- 1. CABEÇALHO --- */
         header {
-            flex: 0 0 auto; /* Não encolhe, não cresce, altura fixa */
+            flex: 0 0 auto;
             background-color: var(--sidebar-color);
             border-bottom: 1px solid #333;
             display: flex;
             justify-content: space-between;
             align-items: center;
             padding: 0 15px;
-            
-            /* Altura segura */
             height: calc(var(--header-height) + env(safe-area-inset-top)); 
             padding-top: env(safe-area-inset-top);
-            
             z-index: 50;
-            position: relative; /* Ocupa espaço no fluxo */
+            position: relative;
         }
 
         h1 { font-size: 16px; margin: 0; color: white; font-weight: 600; }
         button { background: none; border: none; font-size: 16px; cursor: pointer; }
         .btn-link { color: var(--accent-color); font-weight: 500; height: 100%; display: flex; align-items: center;}
 
-        /* --- 2. ÁREA CENTRAL (Ocupa o resto do espaço) --- */
+        /* --- 2. ÁREA CENTRAL --- */
         #main-area {
-            flex: 1 1 auto; /* Cresce para ocupar todo o espaço restante */
+            flex: 1 1 auto;
             position: relative;
-            overflow: hidden; /* O conteúdo não sai daqui */
+            overflow: hidden;
             display: flex;
             flex-direction: column;
             background-color: var(--bg-color);
             z-index: 1;
+            min-height: 0; /* IMPEDE O CORTE DO CONTEÚDO */
         }
 
         #editor-container {
             display: flex;
             flex: 1;
-            height: 100%; /* Força altura total */
+            height: 100%;
             overflow: hidden;
             position: relative;
             background-color: var(--bg-color);
@@ -87,7 +85,7 @@
             font-size: 14px;
             line-height: var(--row-height);
             text-align: right;
-            padding-top: 10px; /* Margem interna */
+            padding-top: 10px;
             padding-right: 5px;
             border-right: 1px solid #333;
             overflow: hidden; 
@@ -102,7 +100,7 @@
             font-size: 14px;
             line-height: var(--row-height);
             border: none;
-            padding: 10px 10px 50px 10px; /* Padding top igual ao line-numbers */
+            padding: 10px 10px 50px 10px;
             resize: none;
             outline: none;
             white-space: pre;
@@ -110,28 +108,36 @@
             tab-size: 2;
         }
 
-        /* --- PREVIEW --- */
+        /* --- PREVIEW (CORRIGIDO) --- */
         #preview-container {
             display: none; 
-            flex: 1;
             flex-direction: column;
             background: #f0f0f5;
             z-index: 5;
             height: 100%;
+            width: 100%;
+            overflow: hidden;
         }
         
         .url-bar {
             background: #fff; padding: 8px; text-align: center;
             font-size: 12px; color: #333; border-bottom: 1px solid #ccc;
             font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 5px;
-            flex: 0 0 auto;
+            flex: 0 0 auto; /* Altura fixa */
         }
 
-        iframe { flex: 1; width: 100%; border: none; background: white; }
+        iframe { 
+            flex: 1 1 auto; /* Ocupa o resto do espaço */
+            width: 100%; 
+            height: 100%; /* Garante altura total */
+            border: none; 
+            background: white; 
+            display: block;
+        }
 
-        /* --- 3. TOOLBAR (Teclado) --- */
+        /* --- 3. TOOLBAR --- */
         #toolbar {
-            flex: 0 0 auto; /* Altura fixa */
+            flex: 0 0 auto;
             height: 44px;
             background-color: #2c2c2e;
             border-top: 1px solid #3a3a3c;
@@ -146,24 +152,18 @@
         #toolbar::-webkit-scrollbar { display: none; }
 
         .key-btn {
-            height: 34px;
-            padding: 0 12px;
-            background: #3a3a3c;
-            color: white;
-            border-radius: 6px;
-            font-weight: bold;
-            font-family: var(--code-font);
-            font-size: 16px;
-            display: flex; align-items: center; justify-content: center;
+            height: 34px; padding: 0 12px; background: #3a3a3c; color: white;
+            border-radius: 6px; font-weight: bold; font-family: var(--code-font);
+            font-size: 16px; display: flex; align-items: center; justify-content: center;
             flex-shrink: 0;
         }
         .action-key { font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
         .copy { background: rgba(48, 209, 88, 0.2); color: var(--success-color); }
         .clear { background: rgba(255, 69, 58, 0.2); color: var(--danger-color); }
 
-        /* --- 4. ABAS (Rodapé) --- */
+        /* --- 4. ABAS --- */
         #tab-bar {
-            flex: 0 0 auto; /* Altura fixa */
+            flex: 0 0 auto;
             height: 80px; 
             background-color: var(--sidebar-color);
             border-top: 1px solid #333;
@@ -194,12 +194,9 @@
         }
 
         .files-header {
-            /* Mesma altura e lógica do header principal */
             flex: 0 0 auto;
             height: calc(var(--header-height) + env(safe-area-inset-top)); 
-            padding: 0 15px;
-            padding-top: env(safe-area-inset-top);
-            
+            padding: 0 15px; padding-top: env(safe-area-inset-top);
             background: var(--sidebar-color); border-bottom: 1px solid #333;
             display: flex; justify-content: center; align-items: center;
         }
@@ -208,8 +205,7 @@
             padding: 20px; border-bottom: 1px solid #333;
             background: #252526; color: var(--accent-color);
             font-size: 18px; font-weight: 600; cursor: pointer;
-            display: flex; align-items: center; gap: 10px;
-            flex-shrink: 0;
+            display: flex; align-items: center; gap: 10px; flex-shrink: 0;
         }
 
         .file-list { flex: 1; overflow-y: auto; background: var(--bg-color); }
@@ -221,8 +217,7 @@
 
         .backup-area {
             padding: 20px; background: #1c1c1e; border-top: 1px solid #333;
-            padding-bottom: max(30px, env(safe-area-inset-bottom));
-            flex-shrink: 0;
+            padding-bottom: max(30px, env(safe-area-inset-bottom)); flex-shrink: 0;
         }
 
         .full-btn { width: 100%; padding: 12px; border-radius: 8px; margin-bottom: 10px; font-weight: 600; }
@@ -299,7 +294,7 @@
     <input type="file" id="json-input" accept=".json" style="display:none" onchange="importData(this)">
 
     <script>
-        // --- ELEMENTOS ---
+        // ELEMENTOS
         const overlay = document.getElementById('files-overlay');
         const editorContainer = document.getElementById('editor-container');
         const previewContainer = document.getElementById('preview-container');
@@ -313,7 +308,7 @@
 
         let currentId = null;
 
-        // --- 1. SINCRONIA ---
+        // 1. SINCRONIA
         const updateLines = () => {
             const val = codeInput.value;
             const lines = val.split('\n').length;
@@ -349,7 +344,7 @@
             }
         }
 
-        // --- 2. MODOS ---
+        // 2. MODOS
         function setMode(mode) {
             document.getElementById('tab-code').classList.remove('active');
             document.getElementById('tab-view').classList.remove('active');
@@ -362,14 +357,25 @@
             } else {
                 document.getElementById('tab-view').classList.add('active');
                 editorContainer.style.display = 'none';
-                previewContainer.style.display = 'flex';
+                previewContainer.style.display = 'flex'; // Flex column para preencher altura
                 toolbar.style.display = 'none'; 
-                const content = codeInput.value.trim() || "<body style='padding:20px; font-family:sans-serif; text-align:center; color:#888'>Preview Vazio</body>";
+                
+                let content = codeInput.value.trim();
+                
+                // Truque: Adiciona padding ao body do HTML para não cortar
+                if(content.includes('<body')) {
+                     content = content.replace('</body>', '<div style="height:50px; width:100%;"></div></body>');
+                } else {
+                     content += '<div style="height:50px; width:100%;"></div>';
+                }
+                
+                if(!content) content = "<body style='padding:20px; font-family:sans-serif; text-align:center; color:#888'>Preview Vazio</body>";
+                
                 iframe.srcdoc = content;
             }
         }
 
-        // --- 3. MENU ARQUIVOS (Sem voltar) ---
+        // 3. MENU ARQUIVOS
         function openFiles() {
             loadList();
             overlay.classList.remove('hidden');
@@ -390,7 +396,7 @@
         document.getElementById('btn-files').addEventListener('click', openFiles);
         saveBtn.addEventListener('click', saveDoc);
 
-        // --- 4. GESTÃO DE DADOS ---
+        // 4. GESTÃO DE DADOS
         function createFile() {
             codeInput.value = "";
             titleEl.innerText = "Sem Título";
@@ -459,7 +465,7 @@
             }
         }
 
-        // --- 5. BACKUP ---
+        // 5. BACKUP
         function exportData() {
             const data = [];
             for(let i=0; i<localStorage.length; i++) {
