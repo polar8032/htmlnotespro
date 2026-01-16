@@ -5,20 +5,23 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>PocketHTML v6</title>
+    <title>PocketHTML v7</title>
     <style>
+        /* --- CONFIGURAÇÕES GERAIS --- */
         :root {
             --bg-color: #1e1e1e;
             --sidebar-color: #252526;
             --line-num-bg: #252526;
-            --line-num-text: #6e6e6e;
-            --text-color: #d4d4d4;
+            --line-num-text: #666;
+            --text-color: #e0e0e0;
             --accent-color: #0a84ff;
+            --success-color: #30d158;
             --danger-color: #ff453a;
-            --success-color: #32d74b;
             --code-font: 'Menlo', 'Courier New', monospace;
-            --tab-bar-height: 85px; 
+            --row-height: 24px; /* Altura fixa de cada linha para sincronia perfeita */
         }
+
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, sans-serif;
@@ -31,30 +34,26 @@
             overflow: hidden;
         }
 
-        /* UTILS */
-        .d-none { display: none !important; }
-        .flex { display: flex !important; }
-
-        /* HEADER */
+        /* --- CABEÇALHO --- */
         header {
+            height: 50px;
             background-color: var(--sidebar-color);
-            padding: 10px 15px;
-            padding-top: max(10px, env(safe-area-inset-top));
+            border-bottom: 1px solid #333;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border-bottom: 1px solid #333;
-            height: 44px;
+            padding: 0 15px;
+            padding-top: max(5px, env(safe-area-inset-top));
             flex-shrink: 0;
-            z-index: 50; 
+            z-index: 50;
         }
 
-        h1 { margin: 0; font-size: 17px; font-weight: 600; color: white; }
+        h1 { font-size: 16px; margin: 0; color: white; }
         button { background: none; border: none; font-size: 16px; cursor: pointer; }
-        .header-btn { color: var(--accent-color); font-weight: 500; }
+        .btn-link { color: var(--accent-color); font-weight: 500; }
 
-        /* ÁREA CENTRAL */
-        #main-content {
+        /* --- EDITOR (ÁREA CENTRAL) --- */
+        #main-area {
             flex: 1;
             position: relative;
             overflow: hidden;
@@ -62,484 +61,455 @@
             flex-direction: column;
         }
 
-        /* EDITOR WRAPPER (Linhas + Texto) */
-        #editor-wrapper {
-            flex: 1;
+        #editor-container {
             display: flex;
-            background-color: var(--bg-color);
+            flex: 1;
             overflow: hidden;
+            position: relative;
+            background-color: var(--bg-color);
         }
 
+        /* Coluna dos Números */
         #line-numbers {
             width: 45px;
             background-color: var(--line-num-bg);
             color: var(--line-num-text);
             font-family: var(--code-font);
             font-size: 14px;
-            line-height: 22px; 
+            line-height: var(--row-height);
             text-align: right;
-            padding: 10px 5px;
+            padding: 10px 5px 0 0; /* Top padding igual ao editor */
             border-right: 1px solid #333;
-            box-sizing: border-box;
+            overflow: hidden; /* Scroll controlado via JS */
             user-select: none;
         }
 
-        #editor {
+        /* Área de Texto */
+        #code-input {
             flex: 1;
-            background-color: transparent;
+            background: transparent;
             color: #fff;
             font-family: var(--code-font);
             font-size: 14px;
-            line-height: 22px; 
+            line-height: var(--row-height);
             border: none;
-            padding: 10px; 
+            padding: 10px 10px 0 10px; /* Top padding crítico para alinhar */
             resize: none;
             outline: none;
-            white-space: pre; 
-            overflow: auto; 
+            white-space: pre;
+            overflow: auto; /* Scroll nativo */
             tab-size: 2;
         }
 
-        /* PREVIEW WRAPPER (Diferenciado da App) */
-        #preview-wrapper {
+        /* --- PREVIEW --- */
+        #preview-container {
+            display: none; /* Escondido por padrão */
             flex: 1;
-            display: none; /* Hidden by default */
             flex-direction: column;
-            background-color: #f2f2f7; /* Cor de fundo cinza claro tipo iOS */
-        }
-
-        /* Barra falsa de navegador para separar visualmente */
-        .browser-bar {
-            background: #fff;
-            padding: 8px 15px;
-            border-bottom: 1px solid #ccc;
-            color: #000;
-            font-size: 12px;
-            text-align: center;
-            font-weight: 500;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 5px;
-        }
-
-        #preview-frame {
-            flex: 1;
-            width: 100%;
-            height: 100%;
-            background: white;
-            border: none;
-        }
-
-        /* TOOLBAR (Teclado) */
-        #code-toolbar {
-            background-color: #2d2d30;
-            padding: 8px 5px;
-            display: flex;
-            gap: 10px;
-            overflow-x: auto;
-            border-top: 1px solid #3e3e42;
-            align-items: center;
-            flex-shrink: 0;
-            height: 42px;
-            -webkit-overflow-scrolling: touch; 
-        }
-        #code-toolbar::-webkit-scrollbar { display: none; }
-
-        .tool-btn {
-            background: #3e3e42;
-            color: white;
-            padding: 0 12px;
-            height: 34px;
-            border-radius: 6px;
-            font-family: var(--code-font);
-            font-weight: bold;
-            font-size: 16px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0; 
-        }
-        .btn-copy { background-color: rgba(50, 215, 75, 0.2); color: var(--success-color); font-size: 12px; text-transform: uppercase; }
-        .btn-clear { background-color: rgba(255, 69, 58, 0.2); color: var(--danger-color); font-size: 12px; text-transform: uppercase; }
-
-        /* BARRA INFERIOR (ABAS) */
-        #tab-bar {
-            background-color: var(--sidebar-color);
-            height: var(--tab-bar-height); 
-            display: none; /* Começa escondida */
-            align-items: flex-start;
-            justify-content: space-around;
-            border-top: 1px solid #333;
-            flex-shrink: 0;
-            padding-top: 10px;
-            padding-bottom: env(safe-area-inset-bottom);
-            box-sizing: border-box;
+            background: #f0f0f5;
         }
         
-        .tab-btn {
-            color: #666;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            width: 60px;
-            background: none; border: none;
-        }
-        .tab-icon { font-size: 24px; margin-bottom: 4px; }
-        .tab-text { font-size: 11px; font-weight: 500; }
-        .tab-btn.active { color: var(--accent-color); }
-
-        /* --- LISTA DE ARQUIVOS (OVERLAY) --- */
-        /* Z-index muito alto para cobrir tudo */
-        #file-list {
-            position: fixed; 
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: var(--bg-color);
-            z-index: 2000; 
-            display: flex;
-            flex-direction: column;
+        .url-bar {
+            background: #fff; padding: 8px; text-align: center;
+            font-size: 12px; color: #333; border-bottom: 1px solid #ccc;
+            font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 5px;
         }
 
-        .file-header {
-            padding: 15px;
-            padding-top: max(15px, env(safe-area-inset-top));
-            background: var(--sidebar-color);
-            border-bottom: 1px solid #333;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
+        iframe { width: 100%; height: 100%; border: none; background: white; }
 
-        /* Botão Criar Novo */
-        .new-file-btn {
-            padding: 25px 20px; /* Mais espaço */
-            border-bottom: 1px solid #333;
-            color: var(--accent-color);
-            font-size: 17px;
-            font-weight: 600;
-            cursor: pointer;
-            background: #252526;
+        /* --- BARRA DE FERRAMENTAS (TECLADO) --- */
+        #toolbar {
+            height: 44px;
+            background-color: #2c2c2e;
+            border-top: 1px solid #3a3a3c;
             display: flex;
             align-items: center;
             gap: 10px;
+            padding: 0 5px;
+            overflow-x: auto;
+            flex-shrink: 0;
+            -webkit-overflow-scrolling: touch;
         }
+        #toolbar::-webkit-scrollbar { display: none; }
 
-        .file-item {
-            padding: 18px 20px;
-            border-bottom: 1px solid #333;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: #252526;
+        .key-btn {
+            height: 34px;
+            padding: 0 12px;
+            background: #3a3a3c;
+            color: white;
+            border-radius: 6px;
+            font-weight: bold;
+            font-family: var(--code-font);
+            font-size: 16px;
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0;
         }
+        .action-key { font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .copy { background: rgba(48, 209, 88, 0.2); color: var(--success-color); }
+        .clear { background: rgba(255, 69, 58, 0.2); color: var(--danger-color); }
 
-        .backup-section {
-            padding: 20px;
-            background-color: #1c1c1e;
-            margin-top: auto;
+        /* --- BARRA DE ABAS (RODAPÉ) --- */
+        #tab-bar {
+            height: 80px; /* Fixo para acomodar Safe Area */
+            background-color: var(--sidebar-color);
             border-top: 1px solid #333;
+            display: none; /* Começa escondida, JS ativa */
+            justify-content: space-around;
+            align-items: flex-start;
+            padding-top: 10px;
+            padding-bottom: env(safe-area-inset-bottom);
+            flex-shrink: 0;
+        }
+        
+        .tab-item {
+            display: flex; flex-direction: column; align-items: center;
+            color: #888; background: none; width: 60px;
+        }
+        .tab-icon { font-size: 24px; margin-bottom: 4px; }
+        .tab-label { font-size: 11px; font-weight: 500; }
+        .tab-item.active { color: var(--accent-color); }
+
+        /* --- TELA DE ARQUIVOS (OVERLAY) --- */
+        #files-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--bg-color);
+            z-index: 2000;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .files-header {
+            padding: 15px; padding-top: max(15px, env(safe-area-inset-top));
+            background: var(--sidebar-color); border-bottom: 1px solid #333;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+
+        .new-btn {
+            padding: 20px; border-bottom: 1px solid #333;
+            background: #252526; color: var(--accent-color);
+            font-size: 18px; font-weight: 600; cursor: pointer;
+            display: flex; align-items: center; gap: 10px;
+        }
+
+        .file-list { flex: 1; overflow-y: auto; }
+
+        .file-entry {
+            padding: 15px 20px; border-bottom: 1px solid #333;
+            background: #252526; display: flex; justify-content: space-between; align-items: center;
+        }
+
+        .backup-area {
+            padding: 20px; background: #1c1c1e; border-top: 1px solid #333;
             padding-bottom: max(30px, env(safe-area-inset-bottom));
         }
 
-        .action-btn {
-            width: 100%; padding: 14px; border-radius: 10px; font-weight: 600; margin-bottom: 10px; font-size: 15px;
-        }
-        .btn-green { background: var(--success-color); color: black; }
-        .btn-orange { background: #ff9f0a; color: black; }
+        .full-btn { width: 100%; padding: 12px; border-radius: 8px; margin-bottom: 10px; font-weight: 600; }
+        .green { background: var(--success-color); color: #000; }
+        .orange { background: #ff9f0a; color: #000; }
 
-        #file-input { display: none; }
+        /* Helpers */
+        .hidden { display: none !important; }
+        .flex { display: flex !important; }
 
     </style>
 </head>
 <body>
 
     <header>
-        <button class="header-btn" onclick="openFileList()">📂 Arquivos</button>
+        <button class="btn-link" id="btn-files">📂 Arquivos</button>
         <h1 id="doc-title">Sem Título</h1>
-        <button class="header-btn" id="save-btn">Salvar</button>
+        <button class="btn-link" id="btn-save">Salvar</button>
     </header>
 
-    <div id="main-content">
-        <div id="editor-wrapper">
+    <div id="main-area">
+        
+        <div id="editor-container">
             <div id="line-numbers">1</div>
-            <textarea id="editor" spellcheck="false" autocomplete="off" autocapitalize="off" placeholder=""></textarea>
+            <textarea id="code-input" spellcheck="false" autocomplete="off" autocapitalize="off"></textarea>
         </div>
 
-        <div id="preview-wrapper">
-            <div class="browser-bar">
-                <span>🔒 localhost:preview</span>
-            </div>
-            <iframe id="preview-frame" sandbox="allow-scripts allow-same-origin"></iframe>
+        <div id="preview-container">
+            <div class="url-bar">🔒 Local Preview</div>
+            <iframe id="preview-frame"></iframe>
         </div>
+
     </div>
 
-    <div id="code-toolbar" class="d-none">
-        <button class="tool-btn btn-copy" onclick="copyCode()">Copiar</button>
-        <button class="tool-btn btn-clear" onclick="clearCode()">Apagar</button>
-        <div style="width:1px; height:20px; background:#555; margin:0 5px;"></div>
-        <button class="tool-btn" onclick="insertText('<')">&lt;</button>
-        <button class="tool-btn" onclick="insertText('>')">&gt;</button>
-        <button class="tool-btn" onclick="insertText('/')">/</button>
-        <button class="tool-btn" onclick="insertText('=')">=</button>
-        <button class="tool-btn" onclick="insertText('"')">"</button>
-        <button class="tool-btn" onclick="insertText('!')">!</button>
-        <button class="tool-btn" onclick="insertText('class=')">class</button>
-        <button class="tool-btn" onclick="insertText('<div></div>')">div</button>
+    <div id="toolbar">
+        <button class="key-btn action-key copy" onclick="copyCode()">Copiar</button>
+        <button class="key-btn action-key clear" onclick="clearCode()">Apagar</button>
+        <div style="width:1px; height:20px; background:#444; margin:0 5px;"></div>
+        <button class="key-btn" onclick="ins('<')">&lt;</button>
+        <button class="key-btn" onclick="ins('>')">&gt;</button>
+        <button class="key-btn" onclick="ins('/')">/</button>
+        <button class="key-btn" onclick="ins('=')">=</button>
+        <button class="key-btn" onclick="ins('"')">"</button>
+        <button class="key-btn" onclick="ins('!')">!</button>
+        <button class="key-btn" onclick="ins('class=')">class</button>
+        <button class="key-btn" onclick="ins('<div></div>')">div</button>
     </div>
 
     <div id="tab-bar">
-        <button class="tab-btn active" onclick="switchTab('editor')" id="tab-editor">
+        <button class="tab-item active" id="tab-code" onclick="setMode('code')">
             <span class="tab-icon">💻</span>
-            <span class="tab-text">Editor</span>
+            <span class="tab-label">Código</span>
         </button>
-        <button class="tab-btn" onclick="switchTab('preview')" id="tab-preview">
+        <button class="tab-item" id="tab-view" onclick="setMode('view')">
             <span class="tab-icon">👁️</span>
-            <span class="tab-text">Preview</span>
+            <span class="tab-label">Preview</span>
         </button>
     </div>
 
-    <div id="file-list">
-        <div class="file-header">
+    <div id="files-overlay">
+        <div class="files-header">
             <span style="font-weight:bold; font-size:18px; color:white;">Meus Projetos</span>
-            <button onclick="closeFileList()" style="color:var(--accent-color); font-size:16px;">Voltar</button>
+            <button onclick="closeFiles()" style="color:var(--accent-color); font-size:16px;">Voltar</button>
         </div>
 
-        <div class="new-file-btn" onclick="createNewFile()">
+        <div class="new-btn" onclick="createFile()">
             <span style="font-size: 24px;">+</span>
-            <span>Criar Novo (Vazio)</span>
+            <span>Criar Novo Documento</span>
         </div>
 
-        <div id="saved-files-container" style="overflow-y:auto; flex:1;"></div>
+        <div class="file-list" id="saved-list"></div>
 
-        <div class="backup-section">
-            <button class="action-btn btn-green" onclick="exportBackup()">⬇ Baixar Backup</button>
-            <button class="action-btn btn-orange" onclick="triggerImport()">⬆ Restaurar Backup</button>
+        <div class="backup-area">
+            <button class="full-btn green" onclick="exportData()">⬇ Baixar Backup</button>
+            <button class="full-btn orange" onclick="importTrigger()">⬆ Restaurar Backup</button>
         </div>
     </div>
 
-    <input type="file" id="file-input" accept=".json" onchange="importBackup(this)">
+    <input type="file" id="json-input" accept=".json" style="display:none" onchange="importData(this)">
 
     <script>
-        const editor = document.getElementById('editor');
-        const lineNumbersEle = document.getElementById('line-numbers');
-        const editorWrapper = document.getElementById('editor-wrapper');
-        
-        const previewWrapper = document.getElementById('preview-wrapper');
-        const previewFrame = document.getElementById('preview-frame');
-        
-        const fileListOverlay = document.getElementById('file-list');
+        // Elementos
+        const overlay = document.getElementById('files-overlay');
+        const editorContainer = document.getElementById('editor-container');
+        const previewContainer = document.getElementById('preview-container');
+        const codeInput = document.getElementById('code-input');
+        const lineNums = document.getElementById('line-numbers');
         const tabBar = document.getElementById('tab-bar');
-        const toolbar = document.getElementById('code-toolbar');
-        const docTitle = document.getElementById('doc-title');
-        const saveBtn = document.getElementById('save-btn');
+        const toolbar = document.getElementById('toolbar');
+        const iframe = document.getElementById('preview-frame');
+        const titleEl = document.getElementById('doc-title');
+        const saveBtn = document.getElementById('btn-save');
+
+        let currentId = null;
+
+        // --- 1. SINCRONIA E EDITOR ---
         
-        let currentFileId = null;
-
-        // --- LINHAS NUMERADAS ---
-        const updateLineNumbers = () => {
-            const lines = editor.value.split('\n').length;
-            lineNumbersEle.innerHTML = Array(lines).fill(0).map((_, i) => i + 1).join('<br>');
+        // Atualiza números das linhas
+        const updateLines = () => {
+            const val = codeInput.value;
+            const lines = val.split('\n').length;
+            // Gera lista de números
+            lineNums.innerHTML = Array.from({length: lines}, (_, i) => i + 1).join('<br>');
         };
-        const syncScroll = () => { lineNumbersEle.scrollTop = editor.scrollTop; };
-        editor.addEventListener('input', updateLineNumbers);
-        editor.addEventListener('scroll', syncScroll);
-        updateLineNumbers();
 
-        // --- INSERÇÃO DE TEXTO ---
-        function insertText(text) {
-            const start = editor.selectionStart;
-            const end = editor.selectionEnd;
-            const value = editor.value;
-            editor.value = value.substring(0, start) + text + value.substring(end);
-            editor.selectionStart = editor.selectionEnd = start + text.length;
-            editor.focus();
-            if(text.includes('></')) {
-                const middle = text.indexOf('></') + 1;
-                editor.selectionStart = editor.selectionEnd = start + middle;
-            }
-            updateLineNumbers();
-        }
-
-        // --- ALTERNAR ABAS (CORRIGIDO) ---
-        function switchTab(mode) {
-            document.getElementById('tab-editor').classList.remove('active');
-            document.getElementById('tab-preview').classList.remove('active');
-            
-            if (mode === 'editor') {
-                document.getElementById('tab-editor').classList.add('active');
-                
-                editorWrapper.style.display = 'flex'; // Mostra editor
-                previewWrapper.style.display = 'none'; // Esconde preview
-                toolbar.style.display = 'flex';        // Mostra toolbar
-                
-            } else {
-                document.getElementById('tab-preview').classList.add('active');
-                
-                editorWrapper.style.display = 'none';  // Esconde editor (remove quadrado cinza)
-                previewWrapper.style.display = 'flex'; // Mostra container preview
-                toolbar.style.display = 'none';        // Esconde toolbar
-                
-                // FORCE UPDATE PREVIEW
-                let htmlContent = editor.value;
-                if(!htmlContent.trim()) {
-                    htmlContent = "<body style='font-family:sans-serif; text-align:center; padding:50px; color:#666;'>Nada para visualizar...</body>";
-                }
-                previewFrame.srcdoc = htmlContent;
-            }
-        }
-
-        // --- COPY & CLEAR ---
-        function copyCode() {
-            if(!editor.value) return;
-            navigator.clipboard.writeText(editor.value);
-            alert("Copiado!");
-        }
-        function clearCode() {
-            if(confirm("Apagar tudo?")) {
-                editor.value = "";
-                updateLineNumbers();
-            }
-        }
-
-        // --- GERENCIAMENTO DE ESTADO ---
-        function openFileList() {
-            loadFilesList();
-            fileListOverlay.style.display = 'flex';
-            
-            // Esconde UI de edição
-            tabBar.style.display = 'none';
-            toolbar.style.display = 'none';
-            saveBtn.style.display = 'none';
-            editor.blur();
-        }
-
-        function closeFileList() {
-            fileListOverlay.style.display = 'none';
-            
-            // Mostra UI de edição
-            tabBar.style.display = 'flex';
-            toolbar.style.display = 'flex';
-            saveBtn.style.display = 'block';
-            
-            switchTab('editor'); 
-        }
-
-        function createNewFile() {
-            editor.value = "";
-            docTitle.innerText = "Sem Título";
-            currentFileId = null;
-            updateLineNumbers();
-            closeFileList();
-        }
-
-        // SALVAR
-        saveBtn.addEventListener('click', () => {
-            let defaultName = docTitle.innerText === "Sem Título" ? "index.html" : docTitle.innerText;
-            let fileName = prompt("Nome do arquivo:", defaultName);
-            if (!fileName) return;
-
-            if (!currentFileId) currentFileId = Date.now().toString();
-            
-            const fileData = {
-                id: currentFileId,
-                name: fileName,
-                content: editor.value,
-                date: new Date().toLocaleDateString()
-            };
-
-            localStorage.setItem('html_note_' + currentFileId, JSON.stringify(fileData));
-            docTitle.innerText = fileName;
-            alert("Salvo!");
+        // Scroll Sincronizado (Instantâneo)
+        codeInput.addEventListener('scroll', () => {
+            lineNums.scrollTop = codeInput.scrollTop;
         });
 
-        function loadFilesList() {
-            const container = document.getElementById('saved-files-container');
-            container.innerHTML = '';
-            let hasFiles = false;
+        // Entrada de dados
+        codeInput.addEventListener('input', updateLines);
+
+        // Inserir Texto
+        function ins(txt) {
+            const start = codeInput.selectionStart;
+            const end = codeInput.selectionEnd;
+            const val = codeInput.value;
+            codeInput.value = val.substring(0, start) + txt + val.substring(end);
+            codeInput.selectionStart = codeInput.selectionEnd = start + txt.length;
+            
+            if(txt.includes('></')) {
+                codeInput.selectionStart = start + txt.indexOf('></') + 1;
+                codeInput.selectionEnd = codeInput.selectionStart;
+            }
+            codeInput.focus();
+            updateLines();
+        }
+
+        function copyCode() {
+            if(!codeInput.value) return;
+            navigator.clipboard.writeText(codeInput.value);
+            alert("Copiado!");
+        }
+
+        function clearCode() {
+            if(confirm("Apagar tudo?")) {
+                codeInput.value = "";
+                updateLines();
+            }
+        }
+
+        // --- 2. NAVEGAÇÃO E MODOS ---
+
+        // Modo Edição vs Preview
+        function setMode(mode) {
+            // Reset visual das abas
+            document.getElementById('tab-code').classList.remove('active');
+            document.getElementById('tab-view').classList.remove('active');
+
+            if (mode === 'code') {
+                document.getElementById('tab-code').classList.add('active');
+                editorContainer.style.display = 'flex';
+                previewContainer.style.display = 'none';
+                toolbar.style.display = 'flex';
+            } else {
+                document.getElementById('tab-view').classList.add('active');
+                editorContainer.style.display = 'none';
+                previewContainer.style.display = 'flex';
+                toolbar.style.display = 'none'; // Esconde atalhos no preview
+                
+                // Carregar HTML
+                const content = codeInput.value.trim() || "<body style='padding:20px; font-family:sans-serif; text-align:center; color:#888'>Preview Vazio</body>";
+                iframe.srcdoc = content;
+            }
+        }
+
+        // Abrir Menu Arquivos
+        function openFiles() {
+            loadList();
+            overlay.classList.remove('hidden');
+            // Esconder UI de edição
+            tabBar.style.display = 'none';
+            toolbar.style.display = 'none';
+            saveBtn.style.display = 'none'; // Esconde salvar
+            codeInput.blur(); // Fecha teclado
+        }
+
+        // Fechar Menu Arquivos (Ir para Editor)
+        function closeFiles() {
+            overlay.classList.add('hidden');
+            // Mostrar UI de edição
+            tabBar.style.display = 'flex'; // FORÇA DISPLAY FLEX
+            toolbar.style.display = 'flex';
+            saveBtn.style.display = 'block'; // Mostra salvar
+            
+            setMode('code');
+        }
+
+        // Botões Header
+        document.getElementById('btn-files').addEventListener('click', openFiles);
+        saveBtn.addEventListener('click', saveDoc);
+
+        // --- 3. GESTÃO DE ARQUIVOS ---
+
+        function createFile() {
+            codeInput.value = "";
+            titleEl.innerText = "Sem Título";
+            currentId = null;
+            updateLines();
+            closeFiles(); // Isto vai ativar a barra automaticamente
+        }
+
+        function saveDoc() {
+            let name = prompt("Nome do Projeto:", titleEl.innerText === "Sem Título" ? "index.html" : titleEl.innerText);
+            if (!name) return;
+            
+            if (!currentId) currentId = Date.now().toString();
+            
+            const doc = {
+                id: currentId,
+                name: name,
+                content: codeInput.value,
+                date: new Date().toLocaleDateString()
+            };
+            
+            localStorage.setItem('phtml_' + currentId, JSON.stringify(doc));
+            titleEl.innerText = name;
+            alert("Salvo!");
+        }
+
+        function loadList() {
+            const list = document.getElementById('saved-list');
+            list.innerHTML = '';
+            let count = 0;
+            
             for (let i = 0; i < localStorage.length; i++) {
                 const key = localStorage.key(i);
-                if (key.startsWith('html_note_')) {
-                    hasFiles = true;
-                    const file = JSON.parse(localStorage.getItem(key));
+                if (key.startsWith('phtml_')) {
+                    count++;
+                    const doc = JSON.parse(localStorage.getItem(key));
                     
                     const div = document.createElement('div');
-                    div.className = 'file-item';
+                    div.className = 'file-entry';
                     div.innerHTML = `
-                        <div onclick="openFile('${file.id}')" style="flex:1; cursor:pointer;">
-                            <div style="color:white; font-weight:600; font-size:16px;">${file.name}</div>
-                            <div style="color:#666; font-size:12px; margin-top:4px;">${file.date}</div>
+                        <div onclick="loadFile('${doc.id}')" style="flex:1; cursor:pointer">
+                            <div style="font-weight:bold; font-size:16px; color:white">${doc.name}</div>
+                            <div style="font-size:12px; color:#888; margin-top:4px">${doc.date}</div>
                         </div>
-                        <button onclick="deleteFile('${file.id}')" style="color: #ff453a; padding: 10px; font-size:18px;">🗑️</button>
+                        <button onclick="delFile('${doc.id}')" style="font-size:18px; color:#ff453a; padding:10px">🗑️</button>
                     `;
-                    container.appendChild(div);
+                    list.appendChild(div);
                 }
             }
-            if(!hasFiles) container.innerHTML = '<div style="padding:30px; text-align:center; color:#555;">Nenhum arquivo.</div>';
+            if (count === 0) list.innerHTML = '<div style="padding:30px; text-align:center; color:#555">Nenhum projeto salvo.</div>';
         }
 
-        function openFile(id) {
-            const file = JSON.parse(localStorage.getItem('html_note_' + id));
-            if(file) {
-                editor.value = file.content;
-                docTitle.innerText = file.name;
-                currentFileId = file.id;
-                updateLineNumbers();
-                closeFileList();
+        function loadFile(id) {
+            const doc = JSON.parse(localStorage.getItem('phtml_' + id));
+            if (doc) {
+                codeInput.value = doc.content;
+                titleEl.innerText = doc.name;
+                currentId = doc.id;
+                updateLines();
+                closeFiles();
             }
         }
 
-        function deleteFile(id) {
-            if(confirm("Eliminar permanentemente?")) {
-                localStorage.removeItem('html_note_' + id);
-                loadFilesList();
-                if(currentFileId === id) createNewFile();
+        function delFile(id) {
+            if (confirm("Eliminar projeto?")) {
+                localStorage.removeItem('phtml_' + id);
+                loadList();
+                if (currentId === id) createFile();
             }
         }
 
-        // --- BACKUP ---
-        function exportBackup() {
-            const backupData = [];
-            for (let i = 0; i < localStorage.length; i++) {
-                const key = localStorage.key(i);
-                if (key.startsWith('html_note_')) {
-                    backupData.push(JSON.parse(localStorage.getItem(key)));
+        // --- 4. BACKUP ---
+        function exportData() {
+            const data = [];
+            for(let i=0; i<localStorage.length; i++) {
+                if(localStorage.key(i).startsWith('phtml_')) {
+                    data.push(JSON.parse(localStorage.getItem(localStorage.key(i))));
                 }
             }
-            if (backupData.length === 0) { alert("Nada para salvar."); return; }
-            const dataStr = JSON.stringify(backupData, null, 2);
-            const blob = new Blob([dataStr], { type: "application/json" });
+            if(data.length === 0) return alert("Nada para salvar.");
+            
+            const blob = new Blob([JSON.stringify(data)], {type: "application/json"});
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
             a.download = `backup_${new Date().toISOString().slice(0,10)}.json`;
-            document.body.appendChild(a);
-            a.click();
-            setTimeout(() => { document.body.removeChild(a); window.URL.revokeObjectURL(url); }, 0);
+            document.body.appendChild(a); a.click();
+            setTimeout(()=> document.body.removeChild(a), 0);
         }
 
-        function triggerImport() { document.getElementById('file-input').click(); }
-        
-        function importBackup(input) {
-            const file = input.files[0];
-            if (!file) return;
-            const reader = new FileReader();
-            reader.onload = function(e) {
+        function importTrigger() { document.getElementById('json-input').click(); }
+
+        function importData(input) {
+            const f = input.files[0];
+            if(!f) return;
+            const r = new FileReader();
+            r.onload = e => {
                 try {
-                    const data = JSON.parse(e.target.result);
-                    if (Array.isArray(data)) {
-                        data.forEach(n => localStorage.setItem('html_note_' + n.id, JSON.stringify(n)));
-                        alert("Restaurado com sucesso!");
-                        loadFilesList();
+                    const d = JSON.parse(e.target.result);
+                    if(Array.isArray(d)) {
+                        d.forEach(x => localStorage.setItem('phtml_'+x.id, JSON.stringify(x)));
+                        alert("Restaurado!");
+                        loadList();
                     }
-                } catch (err) { alert("Erro no arquivo."); }
+                } catch(err) { alert("Erro no arquivo."); }
             };
-            reader.readAsText(file);
+            r.readAsText(f);
             input.value = '';
         }
 
-        // INICIALIZAÇÃO
-        openFileList(); 
+        // Inicialização
+        openFiles(); // Começa no menu
+
     </script>
 </body>
 </html>
