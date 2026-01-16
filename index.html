@@ -16,7 +16,6 @@
             --ios-blue: #0a84ff;
             --ios-red: #ff453a;
             --ios-green: #30d158;
-            --ios-orange: #ff9f0a;
             --ios-gray-text: #8e8e93;
             --ios-white: #ffffff;
             
@@ -26,11 +25,13 @@
             --blur-amt: 20px;
 
             /* Dimensions */
-            --header-h: 44px; /* Standard iOS Navbar height */
+            --header-h: 44px;
             --toolbar-h: 48px;
-            --tab-h: 83px; /* Standard iOS Tabbar height (incl home indicator) */
+            --tab-h: 83px;
             
+            /* Fonte Monoespaçada Consistente */
             --code-font: 'Menlo', 'Courier New', monospace;
+            --code-line-height: 24px; /* Altura de linha fixa para sincronia perfeita */
         }
 
         * { 
@@ -47,10 +48,8 @@
             overflow: hidden;
         }
 
-        /* --- UI COMPONENTS: Buttons & Inputs --- */
         button { border: none; background: none; cursor: pointer; }
         
-        /* iOS Toggle Switch style buttons */
         .ios-btn {
             color: var(--ios-blue);
             font-size: 17px;
@@ -61,7 +60,7 @@
         .ios-btn:active { opacity: 0.5; }
         .ios-btn.bold { font-weight: 600; }
 
-        /* --- 1. HEADER (Navigation Bar) --- */
+        /* --- 1. HEADER --- */
         header {
             position: fixed;
             top: 0; left: 0; right: 0;
@@ -93,10 +92,10 @@
             text-overflow: ellipsis;
         }
 
-        /* --- 2. EDITOR AREA --- */
+        /* --- 2. EDITOR AREA (Correção de Sincronia) --- */
         #editor-area {
             position: fixed;
-            top: 0; /* Starts at top but padded by header */
+            top: 0; 
             bottom: 0;
             left: 0; right: 0;
             padding-top: calc(var(--header-h) + env(safe-area-inset-top));
@@ -107,16 +106,18 @@
         }
 
         #line-numbers {
-            width: 40px;
+            width: 42px;
             background-color: var(--ios-bg);
             color: #555;
             font-family: var(--code-font);
             font-size: 13px;
-            line-height: 22px;
-            text-align: right;
-            padding-top: 15px;
+            /* CRÍTICO: Mesma line-height e padding-top do textarea */
+            line-height: var(--code-line-height);
+            padding-top: 15px; 
             padding-right: 8px;
             border-right: 0.5px solid #333;
+            text-align: right;
+            overflow: hidden; /* Esconde barra de rolagem dos números */
             user-select: none;
         }
 
@@ -126,17 +127,17 @@
             color: #d1d1d1;
             font-family: var(--code-font);
             font-size: 13px;
-            line-height: 22px;
+            /* CRÍTICO: Mesma line-height e padding-top da div de números */
+            line-height: var(--code-line-height);
+            padding: 15px 10px; 
             border: none;
-            padding: 15px 10px;
             resize: none;
             outline: none;
-            white-space: pre;
+            white-space: pre; /* Impede quebra de linha automática para manter sincronia */
             overflow: auto;
             -webkit-overflow-scrolling: touch;
         }
         
-        /* Custom Scrollbar hide */
         #code-input::-webkit-scrollbar { display: none; }
 
         /* --- 3. PREVIEW AREA --- */
@@ -165,20 +166,15 @@
             flex-shrink: 0;
         }
 
-        iframe {
-            flex: 1;
-            border: none;
-            background: white;
-            width: 100%;
-        }
+        iframe { flex: 1; border: none; background: white; width: 100%; }
 
-        /* --- 4. TOOLBAR (Accessory View) --- */
+        /* --- 4. TOOLBAR --- */
         #toolbar {
             position: fixed;
             bottom: calc(var(--tab-h) + env(safe-area-inset-bottom));
             left: 0; right: 0;
             height: var(--toolbar-h);
-            background-color: #2a2a2c; /* Keyboard gray */
+            background-color: #2a2a2c;
             backdrop-filter: blur(var(--blur-amt));
             -webkit-backdrop-filter: blur(var(--blur-amt));
             display: flex;
@@ -190,7 +186,6 @@
             box-shadow: 0 -0.5px 0 rgba(0,0,0,0.3);
         }
         
-        /* Hide scrollbar in toolbar */
         #toolbar::-webkit-scrollbar { display: none; }
         
         .key-btn {
@@ -216,7 +211,7 @@
         .copy { color: var(--ios-green); background: rgba(48, 209, 88, 0.15); }
         .clear { color: var(--ios-red); background: rgba(255, 69, 58, 0.15); }
 
-        /* --- 5. TAB BAR (Bottom Navigation) --- */
+        /* --- 5. TAB BAR --- */
         #tab-bar {
             position: fixed;
             bottom: 0; left: 0; right: 0;
@@ -247,7 +242,7 @@
         
         .tab-item.active { color: var(--ios-blue); }
 
-        /* --- 6. FILES MODAL (iOS Sheet Style) --- */
+        /* --- 6. FILES MODAL --- */
         #files-overlay {
             position: fixed;
             top: 0; left: 0; right: 0; bottom: 0;
@@ -256,7 +251,7 @@
             display: flex;
             flex-direction: column;
             transform: translateY(100%);
-            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1); /* iOS Slide feel */
+            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
         }
         
         #files-overlay.open { transform: translateY(0); }
@@ -284,7 +279,6 @@
             background: var(--ios-bg);
         }
         
-        /* Inset Grouped List Style */
         .list-section-title {
             color: var(--ios-gray-text);
             font-size: 13px;
@@ -313,7 +307,6 @@
             border-bottom: 0.5px solid #333;
         }
         
-        /* Rounded corners for first and last items in group */
         .file-group { border-radius: 10px; overflow: hidden; margin-bottom: 20px; }
         .file-entry:last-child { border-bottom: none; }
         
@@ -321,11 +314,7 @@
         .file-name { font-size: 17px; color: white; margin-bottom: 4px; }
         .file-date { font-size: 14px; color: var(--ios-gray-text); }
         
-        .delete-btn {
-            color: var(--ios-red);
-            padding: 10px;
-            font-size: 18px;
-        }
+        .delete-btn { color: var(--ios-red); padding: 10px; font-size: 18px; }
 
         .backup-area {
             background: var(--ios-secondary-bg);
@@ -387,7 +376,7 @@
 
     <div id="tab-bar">
         <button class="tab-item active" id="tab-code" onclick="setMode('code')">
-            <div class="tab-icon"></div> 
+            <div class="tab-icon">💻</div> 
             <span class="tab-label">Editor</span>
         </button>
         <button class="tab-item" id="tab-view" onclick="setMode('view')">
@@ -400,7 +389,8 @@
         <div class="files-header">
             <button class="ios-btn" onclick="closeFiles()">Cancelar</button>
             <span class="modal-title">Meus Projetos</span>
-            <div style="width:50px"></div> </div>
+            <div style="width:50px"></div>
+        </div>
 
         <div class="file-list">
             <div class="create-btn" onclick="createFile()">
@@ -409,8 +399,7 @@
             </div>
 
             <div class="list-section-title">Salvos Recentemente</div>
-            <div id="saved-list-container" class="file-group">
-                </div>
+            <div id="saved-list-container" class="file-group"></div>
         </div>
 
         <div class="backup-area">
@@ -449,7 +438,6 @@
                 
                 let content = codeInput.value.trim();
                 
-                // Viewport Fix
                 if(!content.includes('<meta name="viewport"')) {
                     const vp = '<meta name="viewport" content="width=device-width, initial-scale=1.0">';
                     if(content.includes('<head>')) {
@@ -474,6 +462,7 @@
             lineNums.innerHTML = Array.from({length: lines}, (_, i) => i + 1).join('<br>');
         };
         
+        // CORREÇÃO DE SCROLL (Sincronia Perfeita)
         codeInput.addEventListener('scroll', () => { 
             lineNums.scrollTop = codeInput.scrollTop;
         });
@@ -501,11 +490,9 @@
         
         function copyCode() { 
             navigator.clipboard.writeText(codeInput.value).then(() => {
-                // Could replace with a toast
+                let original = titleEl.innerText;
                 titleEl.innerText = "Copiado!";
-                setTimeout(() => { 
-                    titleEl.innerText = currentId ? JSON.parse(localStorage.getItem('phtml_' + currentId)).name : "Sem Título"; 
-                }, 1500);
+                setTimeout(() => { titleEl.innerText = original; }, 1500);
             });
         }
         
@@ -519,18 +506,13 @@
         function openFiles() {
             loadList();
             overlay.style.display = 'flex';
-            // Slight delay to allow display flex to apply before transform
-            setTimeout(() => {
-                overlay.classList.add('open');
-            }, 10);
+            setTimeout(() => { overlay.classList.add('open'); }, 10);
             codeInput.blur();
         }
 
         function closeFiles() {
             overlay.classList.remove('open');
-            setTimeout(() => {
-                overlay.style.display = 'none';
-            }, 300); // Wait for transition
+            setTimeout(() => { overlay.style.display = 'none'; }, 300);
         }
 
         function createFile() {
@@ -563,7 +545,6 @@
             listContainer.innerHTML = '';
             let count = 0;
             
-            // Collect and Sort
             let docs = [];
             for (let i = 0; i < localStorage.length; i++) {
                 const key = localStorage.key(i);
@@ -571,7 +552,7 @@
                     docs.push(JSON.parse(localStorage.getItem(key)));
                 }
             }
-            docs.sort((a,b) => b.id - a.id); // Newest first
+            docs.sort((a,b) => b.id - a.id);
 
             docs.forEach(doc => {
                 count++;
