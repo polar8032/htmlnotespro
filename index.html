@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>PocketHTML v12</title>
+    <title>PocketHTML v13</title>
     <style>
         /* --- CONFIGURAÇÕES GERAIS --- */
         :root {
@@ -30,7 +30,7 @@
             color: var(--text-color);
             margin: 0;
             height: 100vh;
-            height: -webkit-fill-available; /* iOS Fix */
+            height: -webkit-fill-available; /* Correção iOS */
             width: 100vw;
             display: flex;
             flex-direction: column;
@@ -68,7 +68,6 @@
             min-height: 0;
         }
 
-        /* EDITOR */
         #editor-container {
             display: flex;
             flex: 1;
@@ -109,7 +108,7 @@
             tab-size: 2;
         }
 
-        /* --- PREVIEW (SOLUÇÃO ABSOLUTE) --- */
+        /* --- PREVIEW (CORRIGIDO SIMPLIFICADO) --- */
         #preview-container {
             display: none; 
             flex-direction: column;
@@ -117,7 +116,6 @@
             z-index: 5;
             height: 100%;
             width: 100%;
-            overflow: hidden;
         }
         
         .url-bar {
@@ -127,20 +125,12 @@
             flex: 0 0 auto;
         }
 
-        /* Wrapper Especial para Iframe */
-        #iframe-wrapper {
-            flex: 1;
-            position: relative; /* Contexto para o absoluto */
-            width: 100%;
-            overflow: hidden;
-        }
-
         iframe { 
-            position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
-            width: 100%; height: 100%;
+            flex: 1; /* Ocupa todo o espaço restante naturalmente */
+            width: 100%; 
             border: none; 
             background: white; 
+            display: block;
         }
 
         /* --- 3. TOOLBAR --- */
@@ -253,9 +243,7 @@
         
         <div id="preview-container">
             <div class="url-bar">🔒 Local Preview</div>
-            <div id="iframe-wrapper">
-                <iframe id="preview-frame"></iframe>
-            </div>
+            <iframe id="preview-frame"></iframe>
         </div>
     </div>
 
@@ -305,7 +293,6 @@
     <input type="file" id="json-input" accept=".json" style="display:none" onchange="importData(this)">
 
     <script>
-        // ELEMENTOS
         const overlay = document.getElementById('files-overlay');
         const editorContainer = document.getElementById('editor-container');
         const previewContainer = document.getElementById('preview-container');
@@ -319,7 +306,6 @@
 
         let currentId = null;
 
-        // 1. SINCRONIA
         const updateLines = () => {
             const val = codeInput.value;
             const lines = val.split('\n').length;
@@ -355,7 +341,6 @@
             }
         }
 
-        // 2. MODOS (Com correção de scroll)
         function setMode(mode) {
             document.getElementById('tab-code').classList.remove('active');
             document.getElementById('tab-view').classList.remove('active');
@@ -373,23 +358,18 @@
                 
                 let content = codeInput.value.trim();
                 
-                // INJEÇÃO DE CSS DE SEGURANÇA
-                // Isto garante que o conteúdo do utilizador tem espaço no fundo
-                const safeStyle = "<style>body{padding-bottom: 80px;}</style>";
-                
-                if(content.includes('</body>')) {
-                     content = content.replace('</body>', safeStyle + '</body>');
-                } else {
-                     content += safeStyle;
+                if(!content) {
+                    content = "<body style='padding:20px; font-family:sans-serif; text-align:center; color:#888'>Preview Vazio</body>";
                 }
                 
-                if(!content.includes('<body')) content = safeStyle + (content || "<body style='padding:20px; font-family:sans-serif; text-align:center; color:#888'>Preview Vazio</body>");
+                // SOLUÇÃO INFALÍVEL PARA CORTE NO IPHONE:
+                // Adiciona um DIV espaçador no final do conteúdo, aconteça o que acontecer.
+                content += '<div style="width:100%; height:100px; clear:both;"></div>';
                 
                 iframe.srcdoc = content;
             }
         }
 
-        // 3. MENU ARQUIVOS
         function openFiles() {
             loadList();
             overlay.classList.remove('hidden');
@@ -410,7 +390,6 @@
         document.getElementById('btn-files').addEventListener('click', openFiles);
         saveBtn.addEventListener('click', saveDoc);
 
-        // 4. GESTÃO DE DADOS
         function createFile() {
             codeInput.value = "";
             titleEl.innerText = "Sem Título";
@@ -479,7 +458,6 @@
             }
         }
 
-        // 5. BACKUP
         function exportData() {
             const data = [];
             for(let i=0; i<localStorage.length; i++) {
@@ -512,7 +490,6 @@
             input.value = '';
         }
 
-        // START
         openFiles(); 
 
     </script>
