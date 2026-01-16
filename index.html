@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>PocketHTML v4</title>
+    <title>PocketHTML v5</title>
     <style>
         :root {
             --bg-color: #1e1e1e;
@@ -17,7 +17,7 @@
             --danger-color: #ff453a;
             --success-color: #32d74b;
             --code-font: 'Menlo', 'Courier New', monospace;
-            --tab-bar-height: 85px; /* Altura fixa para acomodar Safe Area */
+            --tab-bar-height: 85px; 
         }
 
         body {
@@ -25,13 +25,13 @@
             background-color: var(--bg-color);
             color: var(--text-color);
             margin: 0;
-            height: 100vh; /* Altura total */
+            height: 100vh;
             display: flex;
             flex-direction: column;
-            overflow: hidden; /* Impede scroll da página inteira */
+            overflow: hidden;
         }
 
-        /* --- HEADER --- */
+        /* HEADER */
         header {
             background-color: var(--sidebar-color);
             padding: 10px 15px;
@@ -42,57 +42,57 @@
             border-bottom: 1px solid #333;
             height: 44px;
             flex-shrink: 0;
-            z-index: 30;
+            z-index: 200; /* Header sempre no topo */
         }
 
         h1 { margin: 0; font-size: 17px; font-weight: 600; color: white; }
         
         button { background: none; border: none; font-size: 16px; cursor: pointer; }
         .header-btn { color: var(--accent-color); font-weight: 500; }
+        
+        /* Classe para esconder elementos */
+        .d-none { display: none !important; }
 
-        /* --- EDITOR COM LINHAS --- */
+        /* EDITOR E LINHAS */
         #editor-wrapper {
             flex: 1;
-            display: flex;
+            display: flex; /* Flex para alinhar numeros e texto */
             position: relative;
             overflow: hidden;
             background-color: var(--bg-color);
         }
 
-        /* Coluna dos Números */
         #line-numbers {
-            width: 40px;
+            width: 45px;
             background-color: var(--line-num-bg);
             color: var(--line-num-text);
             font-family: var(--code-font);
-            font-size: 15px;
-            line-height: 24px; /* Deve ser igual ao do editor */
+            font-size: 14px;
+            line-height: 22px; 
             text-align: right;
-            padding: 15px 5px;
+            padding: 10px 5px;
             border-right: 1px solid #444;
             box-sizing: border-box;
-            overflow: hidden; /* Scroll controlado via JS */
+            overflow: hidden;
             user-select: none;
         }
 
-        /* Área de Texto */
         #editor {
             flex: 1;
             background-color: transparent;
             color: #fff;
             font-family: var(--code-font);
-            font-size: 15px;
-            line-height: 24px; /* Fixa para alinhar com números */
+            font-size: 14px;
+            line-height: 22px; 
             border: none;
-            padding: 15px 10px; /* Padding igual ao line-numbers */
+            padding: 10px; 
             resize: none;
             outline: none;
-            white-space: pre; /* Garante que o código não quebra linha sozinho */
-            overflow: auto; /* Permite scroll */
+            white-space: pre; 
+            overflow: auto; 
             tab-size: 2;
         }
 
-        /* --- PREVIEW --- */
         #preview-frame {
             flex: 1;
             width: 100%;
@@ -102,18 +102,17 @@
             display: none;
         }
 
-        /* --- TOOLBAR (Acima do Teclado) --- */
+        /* TOOLBAR (Acima do Teclado) */
         #code-toolbar {
             background-color: #2d2d30;
-            padding: 10px 5px;
-            display: flex;
+            padding: 8px 5px;
+            display: flex; /* Flex por padrão, controlado via JS */
             gap: 10px;
             overflow-x: auto;
             border-top: 1px solid #3e3e42;
             align-items: center;
             flex-shrink: 0;
-            height: 45px;
-            /* Scroll suave */
+            height: 42px;
             -webkit-overflow-scrolling: touch; 
         }
         #code-toolbar::-webkit-scrollbar { display: none; }
@@ -122,7 +121,7 @@
             background: #3e3e42;
             color: white;
             padding: 0 12px;
-            height: 36px;
+            height: 34px;
             border-radius: 6px;
             font-family: var(--code-font);
             font-weight: bold;
@@ -130,53 +129,49 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            flex-shrink: 0; /* Impede botão de encolher */
+            flex-shrink: 0; 
         }
 
-        /* Botões Especiais */
-        .btn-copy { background-color: rgba(50, 215, 75, 0.2); color: var(--success-color); font-size: 13px; text-transform: uppercase; }
-        .btn-clear { background-color: rgba(255, 69, 58, 0.2); color: var(--danger-color); font-size: 13px; text-transform: uppercase; }
+        .btn-copy { background-color: rgba(50, 215, 75, 0.2); color: var(--success-color); font-size: 12px; text-transform: uppercase; }
+        .btn-clear { background-color: rgba(255, 69, 58, 0.2); color: var(--danger-color); font-size: 12px; text-transform: uppercase; }
 
-        /* --- TAB BAR (Menu Inferior) --- */
+        /* BARRA INFERIOR (ABAS) - AGORA ESCONDIDA POR PADRÃO */
         #tab-bar {
             background-color: var(--sidebar-color);
             height: var(--tab-bar-height); 
-            display: flex; /* Flexbox para alinhar */
-            align-items: flex-start; /* Alinha itens ao topo da barra */
+            display: none; /* <--- MUDANÇA CRUCIAL: Começa invisível */
+            align-items: flex-start;
             justify-content: space-around;
             border-top: 1px solid #333;
             flex-shrink: 0;
             padding-top: 10px;
-            padding-bottom: env(safe-area-inset-bottom); /* Proteção iPhone */
+            padding-bottom: env(safe-area-inset-bottom);
             box-sizing: border-box;
-            transition: transform 0.3s ease;
         }
         
-        /* Classe para esconder a barra */
-        .hidden-bar { display: none !important; }
+        /* Classe para mostrar a barra quando necessário */
+        .show-bar { display: flex !important; }
 
         .tab-btn {
-            color: #888;
+            color: #666;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             width: 60px;
-            text-align: center;
-            background: none;
-            border: none;
+            background: none; border: none;
         }
-
-        .tab-icon { font-size: 24px; margin-bottom: 4px; display: block; }
-        .tab-text { font-size: 11px; font-weight: 500; display: block; }
+        .tab-icon { font-size: 24px; margin-bottom: 4px; }
+        .tab-text { font-size: 11px; font-weight: 500; }
         .tab-btn.active { color: var(--accent-color); }
 
-        /* --- MODAL ARQUIVOS (Tela Cheia) --- */
+        /* LISTA DE ARQUIVOS (OVERLAY TOTAL) */
         #file-list {
             position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
+            top: 45px; /* Abaixo do header */
+            left: 0; right: 0; bottom: 0;
             background: var(--bg-color);
-            z-index: 100; /* Fica acima de tudo */
+            z-index: 100;
             display: flex;
             flex-direction: column;
         }
@@ -190,7 +185,6 @@
             background: #252526;
         }
 
-        /* Backup Area */
         .backup-section {
             padding: 20px;
             background-color: #1c1c1e;
@@ -222,14 +216,26 @@
         <button class="header-btn" id="save-btn">Salvar</button>
     </header>
 
+    <div id="file-list">
+        <div onclick="createNewFile()" style="padding:20px; border-bottom:1px solid #333; color:var(--accent-color); font-size:17px; font-weight:600; cursor:pointer; background: #252526;">
+            + Criar Novo (Vazio)
+        </div>
+
+        <div id="saved-files-container" style="overflow-y:auto; flex:1;"></div>
+
+        <div class="backup-section">
+            <button class="action-btn btn-green" onclick="exportBackup()">⬇ Baixar Backup</button>
+            <button class="action-btn btn-orange" onclick="triggerImport()">⬆ Restaurar Backup</button>
+        </div>
+    </div>
+
     <div id="editor-wrapper">
         <div id="line-numbers">1</div>
         <textarea id="editor" spellcheck="false" autocomplete="off" autocapitalize="off" placeholder=""></textarea>
         <iframe id="preview-frame"></iframe>
     </div>
 
-    <div id="code-toolbar">
-        <button class="tool-btn btn-copy" onclick="copyCode()">Copiar</button>
+    <div id="code-toolbar" class="d-none"> <button class="tool-btn btn-copy" onclick="copyCode()">Copiar</button>
         <button class="tool-btn btn-clear" onclick="clearCode()">Apagar</button>
         <div style="width:1px; height:20px; background:#555; margin:0 5px;"></div>
         <button class="tool-btn" onclick="insertText('<')">&lt;</button>
@@ -243,32 +249,14 @@
     </div>
 
     <div id="tab-bar">
-        <div class="tab-btn active" onclick="switchTab('editor')" id="tab-editor">
+        <button class="tab-btn active" onclick="switchTab('editor')" id="tab-editor">
             <span class="tab-icon">💻</span>
             <span class="tab-text">Editor</span>
-        </div>
-        <div class="tab-btn" onclick="switchTab('preview')" id="tab-preview">
+        </button>
+        <button class="tab-btn" onclick="switchTab('preview')" id="tab-preview">
             <span class="tab-icon">👁️</span>
             <span class="tab-text">Preview</span>
-        </div>
-    </div>
-
-    <div id="file-list">
-        <div style="padding: 15px; background: #252526; border-bottom: 1px solid #333; display:flex; justify-content: space-between; align-items:center;">
-            <span style="font-weight:bold; font-size:18px; color:white;">Meus Projetos</span>
-            <button onclick="closeFileList()" style="color:var(--accent-color); font-size:16px;">Fechar</button>
-        </div>
-
-        <div onclick="createNewFile()" style="padding:20px; border-bottom:1px solid #333; color:var(--accent-color); font-size:17px; font-weight:600; cursor:pointer;">
-            + Criar Novo (Vazio)
-        </div>
-
-        <div id="saved-files-container" style="overflow-y:auto; flex:1;"></div>
-
-        <div class="backup-section">
-            <button class="action-btn btn-green" onclick="exportBackup()">⬇ Baixar Backup</button>
-            <button class="action-btn btn-orange" onclick="triggerImport()">⬆ Restaurar Backup</button>
-        </div>
+        </button>
     </div>
 
     <input type="file" id="file-input" accept=".json" onchange="importBackup(this)">
@@ -281,26 +269,22 @@
         const tabBar = document.getElementById('tab-bar');
         const toolbar = document.getElementById('code-toolbar');
         const docTitle = document.getElementById('doc-title');
+        const saveBtn = document.getElementById('save-btn');
         
         let currentFileId = null;
 
-        // --- 1. LÓGICA DE LINHAS NUMERADAS ---
+        // --- 1. SINCRONIA DE LINHAS ---
         const updateLineNumbers = () => {
             const lines = editor.value.split('\n').length;
-            // Gera array [1, 2, 3...] e junta com quebra de linha
             lineNumbersEle.innerHTML = Array(lines).fill(0).map((_, i) => i + 1).join('<br>');
         };
-
-        const syncScroll = () => {
-            lineNumbersEle.scrollTop = editor.scrollTop;
-        };
+        const syncScroll = () => { lineNumbersEle.scrollTop = editor.scrollTop; };
 
         editor.addEventListener('input', updateLineNumbers);
         editor.addEventListener('scroll', syncScroll);
-        // Garante que carrega a linha 1 ao iniciar
         updateLineNumbers();
 
-        // --- 2. LÓGICA DO EDITOR ---
+        // --- 2. EDITOR ---
         function insertText(text) {
             const start = editor.selectionStart;
             const end = editor.selectionEnd;
@@ -308,12 +292,11 @@
             editor.value = value.substring(0, start) + text + value.substring(end);
             editor.selectionStart = editor.selectionEnd = start + text.length;
             editor.focus();
-            
             if(text.includes('></')) {
                 const middle = text.indexOf('></') + 1;
                 editor.selectionStart = editor.selectionEnd = start + middle;
             }
-            updateLineNumbers(); // Atualiza linhas ao inserir
+            updateLineNumbers();
         }
 
         function switchTab(mode) {
@@ -324,12 +307,12 @@
                 document.getElementById('tab-editor').classList.add('active');
                 document.getElementById('editor-wrapper').style.display = 'flex';
                 previewFrame.style.display = 'none';
-                toolbar.style.display = 'flex';
+                toolbar.style.display = 'flex'; // Mostra toolbar
             } else {
                 document.getElementById('tab-preview').classList.add('active');
                 document.getElementById('editor-wrapper').style.display = 'none';
                 previewFrame.style.display = 'block';
-                toolbar.style.display = 'none';
+                toolbar.style.display = 'none'; // Esconde toolbar no preview
                 previewFrame.srcdoc = editor.value;
             }
         }
@@ -347,32 +330,44 @@
             }
         }
 
-        // --- 3. GESTÃO DE TELAS E ARQUIVOS ---
+        // --- 3. CONTROLO DE ESTADO (UI) ---
         
-        // Abre a lista e esconde a barra de baixo
+        // MODO: Lista de Arquivos (Main Page)
         function openFileList() {
             loadFilesList();
-            fileListOverlay.style.display = 'flex';
-            tabBar.classList.add('hidden-bar'); // Esconde abas
+            fileListOverlay.style.display = 'flex'; // Mostra Lista
+            
+            // ESCONDE O RESTO
+            tabBar.classList.remove('show-bar');    // Esconde Abas
+            toolbar.classList.add('d-none');        // Esconde Toolbar Teclado
+            saveBtn.classList.add('d-none');        // Esconde botão Salvar
+            
+            // Esconde teclado se estiver aberto
+            editor.blur();
         }
 
-        // Fecha a lista e mostra a barra de baixo
+        // MODO: Editor Aberto
         function closeFileList() {
-            fileListOverlay.style.display = 'none';
-            tabBar.classList.remove('hidden-bar'); // Mostra abas
+            fileListOverlay.style.display = 'none'; // Esconde Lista
+            
+            // MOSTRA O RESTO
+            tabBar.classList.add('show-bar');       // Mostra Abas
+            toolbar.classList.remove('d-none');     // Mostra Toolbar Teclado
+            saveBtn.classList.remove('d-none');     // Mostra botão Salvar
+            
+            switchTab('editor'); // Garante que volta para o código
         }
 
         function createNewFile() {
-            editor.value = ""; // Totalmente vazio
+            editor.value = ""; 
             docTitle.innerText = "Sem Título";
             currentFileId = null;
             updateLineNumbers();
-            closeFileList(); // Fecha overlay e volta ao editor
-            switchTab('editor'); // Garante que está na aba código
+            closeFileList(); // Vai para o editor
         }
 
         // Salvar
-        document.getElementById('save-btn').addEventListener('click', () => {
+        saveBtn.addEventListener('click', () => {
             let defaultName = docTitle.innerText === "Sem Título" ? "index.html" : docTitle.innerText;
             let fileName = prompt("Nome do arquivo:", defaultName);
             if (!fileName) return;
@@ -423,7 +418,7 @@
                 docTitle.innerText = file.name;
                 currentFileId = file.id;
                 updateLineNumbers();
-                closeFileList();
+                closeFileList(); // Vai para o editor
             }
         }
 
@@ -476,8 +471,8 @@
             input.value = '';
         }
 
-        // Inicialização
-        openFileList(); // Começa na lista de arquivos
+        // INICIALIZAÇÃO
+        openFileList(); // Força o estado inicial de "Menu Aberto, Barra Fechada"
 
     </script>
 </body>
