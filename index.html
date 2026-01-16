@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>PocketHTML v8</title>
+    <title>PocketHTML v9</title>
     <style>
         /* --- CONFIGURAÇÕES GERAIS --- */
         :root {
@@ -28,14 +28,14 @@
             background-color: var(--bg-color);
             color: var(--text-color);
             margin: 0;
-            height: 100vh; /* Ocupa exatamente o ecrã todo */
+            height: 100vh;
             width: 100vw;
             display: flex;
             flex-direction: column;
-            overflow: hidden; /* IMPEDE A PÁGINA DE MEXER */
+            overflow: hidden;
         }
 
-        /* --- 1. CABEÇALHO (BLINDADO) --- */
+        /* --- CABEÇALHO --- */
         header {
             height: 50px;
             background-color: var(--sidebar-color);
@@ -45,21 +45,21 @@
             align-items: center;
             padding: 0 15px;
             padding-top: max(5px, env(safe-area-inset-top));
-            flex-shrink: 0; /* Nunca encolhe */
-            z-index: 999; /* Fica SEMPRE por cima do código */
+            flex-shrink: 0;
+            z-index: 999;
             position: relative;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.3); /* Sombra para separar do código */
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
         }
 
         h1 { font-size: 16px; margin: 0; color: white; font-weight: 600; }
         button { background: none; border: none; font-size: 16px; cursor: pointer; }
         .btn-link { color: var(--accent-color); font-weight: 500; padding: 10px 0; }
 
-        /* --- 2. ÁREA CENTRAL (EDITOR) --- */
+        /* --- ÁREA CENTRAL --- */
         #main-area {
-            flex: 1; /* Ocupa o espaço restante */
+            flex: 1;
             position: relative;
-            overflow: hidden; /* O conteúdo não sai daqui */
+            overflow: hidden;
             display: flex;
             flex-direction: column;
             background-color: var(--bg-color);
@@ -74,7 +74,6 @@
             background-color: var(--bg-color);
         }
 
-        /* Coluna dos Números */
         #line-numbers {
             width: 45px;
             background-color: var(--line-num-bg);
@@ -89,7 +88,6 @@
             user-select: none;
         }
 
-        /* Área de Texto */
         #code-input {
             flex: 1;
             background: transparent;
@@ -98,11 +96,11 @@
             font-size: 14px;
             line-height: var(--row-height);
             border: none;
-            padding: 10px 10px 50px 10px; /* Padding extra em baixo para scroll */
+            padding: 10px 10px 50px 10px;
             resize: none;
             outline: none;
             white-space: pre;
-            overflow: auto; /* Scroll acontece AQUI e só AQUI */
+            overflow: auto;
             tab-size: 2;
         }
 
@@ -123,7 +121,7 @@
 
         iframe { width: 100%; height: 100%; border: none; background: white; }
 
-        /* --- 3. BARRA DE FERRAMENTAS (TECLADO) --- */
+        /* --- TOOLBAR --- */
         #toolbar {
             height: 44px;
             background-color: #2c2c2e;
@@ -155,7 +153,7 @@
         .copy { background: rgba(48, 209, 88, 0.2); color: var(--success-color); }
         .clear { background: rgba(255, 69, 58, 0.2); color: var(--danger-color); }
 
-        /* --- 4. BARRA DE ABAS (RODAPÉ) --- */
+        /* --- ABAS --- */
         #tab-bar {
             height: 80px; 
             background-color: var(--sidebar-color);
@@ -177,12 +175,12 @@
         .tab-label { font-size: 11px; font-weight: 500; }
         .tab-item.active { color: var(--accent-color); }
 
-        /* --- 5. OVERLAY ARQUIVOS --- */
+        /* --- OVERLAY ARQUIVOS (Z-index Maximo) --- */
         #files-overlay {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
             background: var(--bg-color);
-            z-index: 2000; /* Z-index MÁXIMO */
+            z-index: 2000;
             display: flex;
             flex-direction: column;
         }
@@ -190,8 +188,10 @@
         .files-header {
             padding: 15px; padding-top: max(15px, env(safe-area-inset-top));
             background: var(--sidebar-color); border-bottom: 1px solid #333;
-            display: flex; justify-content: space-between; align-items: center;
+            /* Centralizado e sem botão voltar */
+            display: flex; justify-content: center; align-items: center;
             flex-shrink: 0;
+            height: 50px;
         }
 
         .new-btn {
@@ -233,17 +233,14 @@
     </header>
 
     <div id="main-area">
-        
         <div id="editor-container">
             <div id="line-numbers">1</div>
             <textarea id="code-input" spellcheck="false" autocomplete="off" autocapitalize="off"></textarea>
         </div>
-
         <div id="preview-container">
             <div class="url-bar">🔒 Local Preview</div>
             <iframe id="preview-frame"></iframe>
         </div>
-
     </div>
 
     <div id="toolbar">
@@ -274,7 +271,6 @@
     <div id="files-overlay">
         <div class="files-header">
             <span style="font-weight:bold; font-size:18px; color:white;">Meus Projetos</span>
-            <button onclick="closeFiles()" style="color:var(--accent-color); font-size:16px;">Voltar</button>
         </div>
 
         <div class="new-btn" onclick="createFile()">
@@ -307,13 +303,12 @@
 
         let currentId = null;
 
-        // --- 1. SINCRONIA E EDITOR ---
+        // --- 1. SINCRONIA ---
         const updateLines = () => {
             const val = codeInput.value;
             const lines = val.split('\n').length;
             lineNums.innerHTML = Array.from({length: lines}, (_, i) => i + 1).join('<br>');
         };
-
         codeInput.addEventListener('scroll', () => { lineNums.scrollTop = codeInput.scrollTop; });
         codeInput.addEventListener('input', updateLines);
 
@@ -323,7 +318,6 @@
             const val = codeInput.value;
             codeInput.value = val.substring(0, start) + txt + val.substring(end);
             codeInput.selectionStart = codeInput.selectionEnd = start + txt.length;
-            
             if(txt.includes('></')) {
                 codeInput.selectionStart = start + txt.indexOf('></') + 1;
                 codeInput.selectionEnd = codeInput.selectionStart;
@@ -345,7 +339,7 @@
             }
         }
 
-        // --- 2. MODOS E NAVEGAÇÃO ---
+        // --- 2. MODOS ---
         function setMode(mode) {
             document.getElementById('tab-code').classList.remove('active');
             document.getElementById('tab-view').classList.remove('active');
@@ -360,24 +354,24 @@
                 editorContainer.style.display = 'none';
                 previewContainer.style.display = 'flex';
                 toolbar.style.display = 'none'; 
-                
                 const content = codeInput.value.trim() || "<body style='padding:20px; font-family:sans-serif; text-align:center; color:#888'>Preview Vazio</body>";
                 iframe.srcdoc = content;
             }
         }
 
-        // Abrir Menu Arquivos
+        // --- 3. MENU ARQUIVOS (Lógica Blindada) ---
         function openFiles() {
             loadList();
             overlay.classList.remove('hidden');
+            // Esconde tudo atrás
             tabBar.style.display = 'none';
             toolbar.style.display = 'none';
-            saveBtn.style.visibility = 'hidden'; // Oculta botão salvar mas mantém layout
+            saveBtn.style.visibility = 'hidden';
             codeInput.blur(); 
         }
 
-        // Fechar Menu Arquivos
-        function closeFiles() {
+        // Função interna para fechar, só chamada se escolher arquivo
+        function _exitFiles() {
             overlay.classList.add('hidden');
             tabBar.style.display = 'flex'; 
             toolbar.style.display = 'flex';
@@ -388,13 +382,13 @@
         document.getElementById('btn-files').addEventListener('click', openFiles);
         saveBtn.addEventListener('click', saveDoc);
 
-        // --- 3. GESTÃO DE DADOS ---
+        // --- 4. GESTÃO DE DADOS ---
         function createFile() {
             codeInput.value = "";
             titleEl.innerText = "Sem Título";
             currentId = null;
             updateLines();
-            closeFiles();
+            _exitFiles(); // Sai do menu
         }
 
         function saveDoc() {
@@ -406,6 +400,7 @@
             localStorage.setItem('phtml_' + currentId, JSON.stringify(doc));
             titleEl.innerText = name;
             alert("Salvo!");
+            loadList(); // Atualiza lista interna
         }
 
         function loadList() {
@@ -439,24 +434,32 @@
                 titleEl.innerText = doc.name;
                 currentId = doc.id;
                 updateLines();
-                closeFiles();
+                _exitFiles(); // Sai do menu
             }
         }
 
         function delFile(id) {
             if (confirm("Eliminar projeto?")) {
                 localStorage.removeItem('phtml_' + id);
+                
+                // SE APAGAR O ARQUIVO ATUALMENTE ABERTO, LIMPA A TELA
+                if (currentId === id) {
+                    codeInput.value = "";
+                    titleEl.innerText = "Sem Título";
+                    currentId = null;
+                    updateLines();
+                }
+                
                 loadList();
-                if (currentId === id) createFile();
+                // Nota: Não chamamos _exitFiles() aqui, o usuário continua na lista
             }
         }
 
+        // --- 5. BACKUP ---
         function exportData() {
             const data = [];
             for(let i=0; i<localStorage.length; i++) {
-                if(localStorage.key(i).startsWith('phtml_')) {
-                    data.push(JSON.parse(localStorage.getItem(localStorage.key(i))));
-                }
+                if(localStorage.key(i).startsWith('phtml_')) data.push(JSON.parse(localStorage.getItem(localStorage.key(i))));
             }
             if(data.length === 0) return alert("Nada para salvar.");
             const blob = new Blob([JSON.stringify(data)], {type: "application/json"});
@@ -466,9 +469,7 @@
             document.body.appendChild(a); a.click();
             setTimeout(()=> document.body.removeChild(a), 0);
         }
-
         function importTrigger() { document.getElementById('json-input').click(); }
-
         function importData(input) {
             const f = input.files[0];
             if(!f) return;
