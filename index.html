@@ -350,29 +350,19 @@
             padding: 40px;
         }
 
+        body.desktop-mode .mode-selector {
+            width: 700px;
+            max-width: 95vw;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
         body.desktop-mode .files-header,
         body.desktop-mode .file-list,
         body.desktop-mode .backup-area {
             width: 700px;
             max-width: 95vw;
             border-radius: 0;
-        }
-        
-        body.desktop-mode .files-header {
-            border-top-left-radius: 12px;
-            border-top-right-radius: 12px;
-        }
-        
-        body.desktop-mode .backup-area {
-            border-bottom-left-radius: 12px;
-            border-bottom-right-radius: 12px;
-        }
-
-        body.desktop-mode .mode-selector {
-            width: 700px;
-            max-width: 95vw;
-            margin-left: auto;
-            margin-right: auto;
         }
 
         #mode-switch {
@@ -427,6 +417,31 @@
         .mode-btn-label {
             font-size: 13px;
             font-weight: 500;
+        }
+
+        
+        body.desktop-mode .files-header {
+            border-top-left-radius: 12px;
+            border-top-right-radius: 12px;
+        }
+        
+        body.desktop-mode .backup-area {
+            border-bottom-left-radius: 12px;
+            border-bottom-right-radius: 12px;
+        }
+
+        body.desktop-mode .file-list .mode-selector,
+        body.desktop-mode .file-list .create-btn,
+        body.desktop-mode .file-list .list-section-title,
+        body.desktop-mode .file-list .file-group {
+            width: 700px;
+            max-width: 95vw;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        body.desktop-mode .file-list .list-section-title {
+            padding-left: 10px;
         }
 
         /* --- MODE MENU POPUP --- */
