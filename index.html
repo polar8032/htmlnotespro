@@ -343,12 +343,7 @@
             background-color: #252526;
         }
 
-        body.desktop-mode #files-overlay {
-            background: rgba(0,0,0,0.7);
-            align-items: center;
-            justify-content: center;
-            padding: 40px;
-        }
+        /* --- MODE MENU POPUP --- */
 
         body.desktop-mode .mode-selector {
             width: 700px;
@@ -529,12 +524,12 @@
         <h1 id="doc-title">Meus Projetos</h1>
         
         <div style="display:flex; align-items:center;">
-            <button class="ios-btn" id="mode-menu-btn" onclick="toggleModeMenu()">⋯</button>
+            <button class="ios-btn" id="mode-menu-btn" onclick="toggleModeMenu()" style="display:none">⋯</button>
             <button class="ios-btn bold" id="btn-save" onclick="saveDoc()" style="display:none">Salvar</button>
         </div>
     </header>
 
-    <!-- Menu flutuante de modo -->
+    <!-- Menu flutuante de modo (só visível quando há documento) -->
     <div class="menu-overlay" id="menu-overlay" onclick="closeModeMenu()"></div>
     <div class="mode-menu" id="mode-menu">
         <div class="mode-menu-item" id="menu-mobile" onclick="selectModeFromMenu('mobile')">
@@ -596,20 +591,6 @@
         </div>
 
         <div class="file-list">
-            <div class="mode-selector">
-                <div class="mode-selector-title">Modo de Visualização</div>
-                <div class="mode-buttons">
-                    <button class="mode-btn" id="mobile-mode-btn" onclick="selectMode('mobile')">
-                        <div class="mode-btn-icon">📱</div>
-                        <span class="mode-btn-label">Mobile</span>
-                    </button>
-                    <button class="mode-btn" id="desktop-mode-btn" onclick="selectMode('desktop')">
-                        <div class="mode-btn-icon">🖥️</div>
-                        <span class="mode-btn-label">Desktop</span>
-                    </button>
-                </div>
-            </div>
-
             <div class="create-btn" onclick="createFile()">
                 <span style="font-size:22px; margin-right:12px; font-weight:300">+</span> 
                 Novo Documento
@@ -624,6 +605,7 @@
             <button class="ios-full-btn btn-gray" onclick="importTrigger()">⬆ Restaurar</button>
         </div>
     </div>
+
     <input type="file" id="json-input" accept=".json" style="display:none" onchange="importData(this)">
 
     <script>
@@ -635,6 +617,7 @@
         const overlay = document.getElementById('files-overlay');
         const modeMenu = document.getElementById('mode-menu');
         const menuOverlay = document.getElementById('menu-overlay');
+        const modeMenuBtn = document.getElementById('mode-menu-btn');
         const saveBtn = document.getElementById('btn-save');
         
         let currentId = null;
@@ -682,26 +665,26 @@
             isDesktop = mode === 'desktop';
             localStorage.setItem('viewMode', mode);
             
-            // Atualizar botões do seletor
-            const mobileBtn = document.getElementById('mobile-mode-btn');
-            const desktopBtn = document.getElementById('desktop-mode-btn');
-            
-            if (mobileBtn && desktopBtn) {
-                mobileBtn.classList.toggle('selected', !isDesktop);
-                desktopBtn.classList.toggle('selected', isDesktop);
-            }
-            
-            if (isDesktop) {
-                body.classList.add('desktop-mode');
-            } else {
-                body.classList.remove('desktop-mode');
-            }
-            
             updateModeMenuSelection();
+            
+            // Aplicar mudanças apenas se estiver editando um documento
+            if (currentView === 'code' || currentView === 'view') {
+                body.classList.toggle('desktop-mode', isDesktop);
+                setMode(currentView); // Reaplicar o modo atual com as novas configurações
+            }
         }
 
         function toggleMode() {
             selectMode(isDesktop ? 'mobile' : 'desktop');
+        }
+
+        function createFile() {
+            codeInput.value = "";
+            titleEl.innerText = "Sem Título";
+            currentId = null;
+            updateLines();
+            setMode('code');
+            if(isDesktop) updatePreview();
         }
 
         function setMode(mode) {
@@ -719,7 +702,10 @@
                 document.getElementById('toolbar').style.display = 'none';
                 document.getElementById('preview-area').style.display = 'none';
                 saveBtn.style.display = 'none';
+                modeMenuBtn.style.display = 'none';
                 titleEl.innerText = 'Meus Projetos';
+                // IMPORTANTE: Remover desktop-mode quando estamos na página de ficheiros
+                body.classList.remove('desktop-mode');
                 loadList();
                 
             } else if (mode === 'code') {
@@ -729,6 +715,9 @@
                 document.getElementById('toolbar').style.display = 'flex';
                 document.getElementById('preview-area').style.display = isDesktop ? 'flex' : 'none';
                 saveBtn.style.display = 'block';
+                modeMenuBtn.style.display = 'block';
+                // Aplicar desktop-mode apenas se o usuário escolheu desktop
+                body.classList.toggle('desktop-mode', isDesktop);
                 
             } else if (mode === 'view') {
                 document.getElementById('tab-view')?.classList.add('active');
@@ -737,6 +726,9 @@
                 document.getElementById('toolbar').style.display = isDesktop ? 'flex' : 'none';
                 document.getElementById('preview-area').style.display = 'flex';
                 saveBtn.style.display = 'block';
+                modeMenuBtn.style.display = 'block';
+                // Aplicar desktop-mode apenas se o usuário escolheu desktop
+                body.classList.toggle('desktop-mode', isDesktop);
                 updatePreview();
             }
         }
@@ -855,15 +847,6 @@
             }
         }
         
-        function createFile() {
-            codeInput.value = "";
-            titleEl.innerText = "Sem Título";
-            currentId = null;
-            updateLines();
-            setMode('code');
-            if(isDesktop) updatePreview();
-        }
-
         function delFile(id) {
             if(confirm("Apagar?")) {
                 localStorage.removeItem('phtml_' + id);
