@@ -5,10 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>PocketHTML iOS</title>
+    <title>PocketHTML Hybrid</title>
     <style>
         :root {
-            /* iOS System Colors (Dark Mode) */
             --ios-bg: #000000;
             --ios-secondary-bg: #1c1c1e;
             --ios-tertiary-bg: #2c2c2e;
@@ -19,17 +18,14 @@
             --ios-gray-text: #8e8e93;
             --ios-white: #ffffff;
             
-            /* Glassmorphism Variables */
             --glass-bg: rgba(30, 30, 30, 0.85);
             --glass-border: rgba(255, 255, 255, 0.15);
             --blur-amt: 20px;
 
-            /* Dimensions */
             --header-h: 44px;
             --toolbar-h: 48px;
-            --tab-h: 83px;
+            --tab-h: 83px; /* Mobile Tab height */
             
-            /* Fonte Monoespaçada Consistente */
             --code-font: 'Menlo', 'Courier New', monospace;
             --code-line-height: 24px;
         }
@@ -46,6 +42,7 @@
             color: var(--ios-white);
             position: fixed; top: 0; left: 0; right: 0; bottom: 0;
             overflow: hidden;
+            transition: background 0.3s;
         }
 
         button { border: none; background: none; cursor: pointer; }
@@ -60,7 +57,7 @@
         .ios-btn:active { opacity: 0.5; }
         .ios-btn.bold { font-weight: 600; }
 
-        /* --- 1. HEADER --- */
+        /* --- HEADER --- */
         header {
             position: fixed;
             top: 0; left: 0; right: 0;
@@ -86,13 +83,10 @@
             position: absolute;
             left: 50%;
             transform: translateX(-50%);
-            max-width: 50%;
             white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
         }
 
-        /* --- 2. EDITOR AREA --- */
+        /* --- EDITOR AREA --- */
         #editor-area {
             position: fixed;
             top: 0; 
@@ -103,6 +97,7 @@
             display: flex;
             background-color: var(--ios-bg);
             z-index: 10;
+            transition: all 0.3s ease;
         }
 
         #line-numbers {
@@ -135,10 +130,9 @@
             overflow: auto;
             -webkit-overflow-scrolling: touch;
         }
-        
         #code-input::-webkit-scrollbar { display: none; }
 
-        /* --- 3. PREVIEW AREA --- */
+        /* --- PREVIEW AREA --- */
         #preview-area {
             position: fixed;
             top: 0;
@@ -149,6 +143,7 @@
             z-index: 20; 
             display: none;
             flex-direction: column;
+            border-left: 0.5px solid var(--ios-separator);
         }
 
         .url-bar {
@@ -166,7 +161,7 @@
 
         iframe { flex: 1; border: none; background: white; width: 100%; }
 
-        /* --- 4. TOOLBAR --- */
+        /* --- TOOLBAR --- */
         #toolbar {
             position: fixed;
             bottom: calc(var(--tab-h) + env(safe-area-inset-bottom));
@@ -181,9 +176,8 @@
             padding: 0 6px;
             overflow-x: auto;
             z-index: 100;
-            box-shadow: 0 -0.5px 0 rgba(0,0,0,0.3);
+            border-top: 0.5px solid var(--ios-separator);
         }
-        
         #toolbar::-webkit-scrollbar { display: none; }
         
         .key-btn {
@@ -199,17 +193,14 @@
             align-items: center;
             justify-content: center;
             flex-shrink: 0;
-            box-shadow: 0 1px 0 rgba(0,0,0,0.5);
             margin-top: 2px;
         }
-        
-        .key-btn:active { background: rgba(255,255,255,0.3); transform: translateY(1px); box-shadow: none;}
-        
+        .key-btn:active { background: rgba(255,255,255,0.3); }
         .action-key { font-family: -apple-system; font-size: 13px; font-weight: 500;}
         .copy { color: var(--ios-green); background: rgba(48, 209, 88, 0.15); }
         .clear { color: var(--ios-red); background: rgba(255, 69, 58, 0.15); }
 
-        /* --- 5. TAB BAR --- */
+        /* --- TAB BAR (MOBILE ONLY) --- */
         #tab-bar {
             position: fixed;
             bottom: 0; left: 0; right: 0;
@@ -224,6 +215,7 @@
             align-items: flex-start;
             padding-top: 8px;
             z-index: 100;
+            transition: transform 0.3s;
         }
 
         .tab-item {
@@ -234,13 +226,11 @@
             width: 70px;
             transition: color 0.2s;
         }
-        
         .tab-icon { font-size: 26px; margin-bottom: 2px; }
-        .tab-label { font-size: 10px; font-weight: 500; letter-spacing: 0.2px;}
-        
+        .tab-label { font-size: 10px; font-weight: 500; }
         .tab-item.active { color: var(--ios-blue); }
 
-        /* --- 6. FILES MODAL --- */
+        /* --- FILES OVERLAY --- */
         #files-overlay {
             position: fixed;
             top: 0; left: 0; right: 0; bottom: 0;
@@ -251,7 +241,6 @@
             transform: translateY(100%);
             transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
         }
-        
         #files-overlay.open { transform: translateY(0); }
         
         .files-header {
@@ -260,107 +249,141 @@
             background: var(--ios-secondary-bg);
             border-bottom: 0.5px solid var(--ios-separator);
             display: flex;
-            justify-content: center; /* Centralizado */
+            justify-content: space-between;
             align-items: center;
             padding-left: 16px; 
             padding-right: 16px;
             flex-shrink: 0;
         }
-        
         .modal-title { font-weight: 600; font-size: 17px; }
-
-        .file-list { 
-            flex: 1;
-            overflow-y: auto;
-            -webkit-overflow-scrolling: touch;
-            padding: 20px 16px;
-            background: var(--ios-bg);
-        }
-        
-        .list-section-title {
-            color: var(--ios-gray-text);
-            font-size: 13px;
-            text-transform: uppercase;
-            margin: 0 0 8px 10px;
-        }
-
-        .create-btn {
-            background: var(--ios-secondary-bg);
-            border-radius: 10px;
-            padding: 14px;
-            display: flex;
-            align-items: center;
-            color: var(--ios-blue);
-            font-size: 17px;
-            font-weight: 400;
-            margin-bottom: 24px;
-        }
-
-        .file-entry {
-            background: var(--ios-secondary-bg);
-            padding: 16px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 0.5px solid #333;
-        }
-        
+        .file-list { flex: 1; overflow-y: auto; padding: 20px 16px; background: var(--ios-bg); }
+        .list-section-title { color: var(--ios-gray-text); font-size: 13px; text-transform: uppercase; margin: 0 0 8px 10px; }
+        .create-btn { background: var(--ios-secondary-bg); border-radius: 10px; padding: 14px; display: flex; align-items: center; color: var(--ios-blue); font-size: 17px; margin-bottom: 24px; cursor: pointer;}
+        .file-entry { background: var(--ios-secondary-bg); padding: 16px; display: flex; justify-content: space-between; align-items: center; border-bottom: 0.5px solid #333; cursor: pointer;}
         .file-group { border-radius: 10px; overflow: hidden; margin-bottom: 20px; }
         .file-entry:last-child { border-bottom: none; }
-        
         .file-info { flex: 1; }
         .file-name { font-size: 17px; color: white; margin-bottom: 4px; }
         .file-date { font-size: 14px; color: var(--ios-gray-text); }
-        
         .delete-btn { color: var(--ios-red); padding: 10px; font-size: 18px; }
-
-        .backup-area {
-            background: var(--ios-secondary-bg);
-            padding: 20px 16px;
-            padding-bottom: calc(20px + env(safe-area-inset-bottom));
-            border-top: 0.5px solid var(--ios-separator);
-        }
-        
-        .ios-full-btn {
-            width: 100%;
-            padding: 14px;
-            border-radius: 12px;
-            font-size: 17px;
-            font-weight: 600;
-            margin-bottom: 12px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-        
+        .backup-area { background: var(--ios-secondary-bg); padding: 20px 16px; padding-bottom: calc(20px + env(safe-area-inset-bottom)); border-top: 0.5px solid var(--ios-separator); }
+        .ios-full-btn { width: 100%; padding: 14px; border-radius: 12px; font-size: 17px; font-weight: 600; margin-bottom: 12px; display: flex; justify-content: center; align-items: center; }
         .btn-green { background: var(--ios-green); color: white; }
         .btn-gray { background: var(--ios-tertiary-bg); color: var(--ios-blue); }
 
+
+        /* ========================================= */
+        /* DESKTOP MODE OVERRIDES           */
+        /* ========================================= */
+        
+        body.desktop-mode {
+            background-color: #1e1e1e; /* Darker macOS feel */
+        }
+
+        /* 1. Hide Tab Bar */
+        body.desktop-mode #tab-bar {
+            transform: translateY(100%);
+        }
+
+        /* 2. Split Screen Layout */
+        body.desktop-mode #editor-area {
+            width: 50%;
+            padding-bottom: var(--toolbar-h); /* Only toolbar space needed */
+            border-right: 1px solid #333;
+        }
+
+        body.desktop-mode #preview-area {
+            display: flex !important; /* Always show in desktop */
+            left: 50%;
+            width: 50%;
+            bottom: 0; /* Full height */
+            padding-top: calc(var(--header-h) + env(safe-area-inset-top));
+            border-left: 1px solid #000;
+        }
+
+        /* 3. Toolbar Adjustment */
+        body.desktop-mode #toolbar {
+            width: 50%; /* Only under code */
+            bottom: 0;
+            background-color: #252526;
+        }
+
+        /* 4. Files Modal -> Desktop Popup Style */
+        body.desktop-mode #files-overlay {
+            background: rgba(0,0,0,0.5); /* Dimmed background */
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+        }
+        
+        body.desktop-mode #files-overlay.open {
+            transform: none; /* No slide up */
+            opacity: 1;
+        }
+        
+        body.desktop-mode #files-overlay:not(.open) {
+            opacity: 0;
+            pointer-events: none;
+            transform: none;
+        }
+
+        body.desktop-mode .files-header,
+        body.desktop-mode .file-list,
+        body.desktop-mode .backup-area {
+            width: 600px; /* Fixed width */
+            max-width: 90vw;
+            border-radius: 0;
+        }
+        
+        body.desktop-mode .files-header {
+            border-top-left-radius: 12px;
+            border-top-right-radius: 12px;
+        }
+        
+        body.desktop-mode .backup-area {
+            border-bottom-left-radius: 12px;
+            border-bottom-right-radius: 12px;
+        }
+
+        /* Icon Switcher Styling */
+        #mode-switch {
+            font-size: 20px;
+            margin-right: 10px;
+            cursor: pointer;
+            width: 40px;
+            text-align: center;
+        }
+
     </style>
 </head>
-<body>
-
-    <header id="main-header">
+<body class=""> <header id="main-header">
         <button class="ios-btn" onclick="openFiles()">
             <span style="font-size:20px; margin-right:2px">📂</span>
         </button>
+        
         <h1 id="doc-title">Sem Título</h1>
-        <button class="ios-btn bold" id="btn-save" onclick="saveDoc()">Salvar</button>
+        
+        <div style="display:flex; align-items:center;">
+            <button class="ios-btn" id="mode-switch" onclick="toggleMode()">🖥️</button>
+            <button class="ios-btn bold" id="btn-save" onclick="saveDoc()">Salvar</button>
+        </div>
     </header>
 
     <div id="editor-area">
         <div id="line-numbers">1</div>
-        <textarea id="code-input" spellcheck="false" autocomplete="off" autocapitalize="off"></textarea>
+        <textarea id="code-input" spellcheck="false" autocomplete="off" autocapitalize="off" placeholder="Escreva seu HTML aqui..."></textarea>
     </div>
 
     <div id="preview-area">
-        <div class="url-bar">🔒 Local Preview</div>
+        <div class="url-bar">
+            <span>🔒 Local Preview</span>
+        </div>
         <iframe id="preview-frame"></iframe>
     </div>
 
     <div id="toolbar">
-        <button class="key-btn action-key copy" onclick="copyCode()">Copy</button>
-        <button class="key-btn action-key clear" onclick="clearCode()">Clear</button>
+        <button class="key-btn action-key copy" onclick="copyCode()">Copiar</button>
+        <button class="key-btn action-key clear" onclick="clearCode()">Limpar</button>
         <div style="width:1px; height:20px; background:rgba(255,255,255,0.1); margin:0 5px;"></div>
         <button class="key-btn" onclick="ins('<')">&lt;</button>
         <button class="key-btn" onclick="ins('>')">&gt;</button>
@@ -385,7 +408,9 @@
 
     <div id="files-overlay">
         <div class="files-header">
+            <button class="ios-btn" onclick="closeFiles()">Fechar</button>
             <span class="modal-title">Meus Projetos</span>
+            <div style="width:50px"></div>
         </div>
 
         <div class="file-list">
@@ -406,62 +431,86 @@
     <input type="file" id="json-input" accept=".json" style="display:none" onchange="importData(this)">
 
     <script>
-        const editorArea = document.getElementById('editor-area');
-        const previewArea = document.getElementById('preview-area');
-        const toolbar = document.getElementById('toolbar');
-        const overlay = document.getElementById('files-overlay');
+        // DOM Elements
+        const body = document.body;
         const codeInput = document.getElementById('code-input');
         const lineNums = document.getElementById('line-numbers');
         const iframe = document.getElementById('preview-frame');
         const titleEl = document.getElementById('doc-title');
+        const overlay = document.getElementById('files-overlay');
+        const modeBtn = document.getElementById('mode-switch');
         
         let currentId = null;
+        let isDesktop = false;
+
+        // --- MODE TOGGLE LOGIC ---
+        function toggleMode() {
+            isDesktop = !isDesktop;
+            
+            if (isDesktop) {
+                body.classList.add('desktop-mode');
+                modeBtn.innerText = "📱"; // Muda ícone para Celular
+                // Em desktop, queremos atualizar o preview em tempo real
+                updatePreview(); 
+            } else {
+                body.classList.remove('desktop-mode');
+                modeBtn.innerText = "🖥️"; // Muda ícone para PC
+            }
+        }
 
         function setMode(mode) {
+            // Only works in Mobile Mode
+            if(isDesktop) return; 
+
             document.getElementById('tab-code').classList.remove('active');
             document.getElementById('tab-view').classList.remove('active');
 
             if (mode === 'code') {
                 document.getElementById('tab-code').classList.add('active');
-                editorArea.style.display = 'flex';
-                toolbar.style.display = 'flex';
-                previewArea.style.display = 'none';
+                document.getElementById('editor-area').style.display = 'flex';
+                document.getElementById('toolbar').style.display = 'flex';
+                document.getElementById('preview-area').style.display = 'none';
             } else {
                 document.getElementById('tab-view').classList.add('active');
-                editorArea.style.display = 'none';
-                toolbar.style.display = 'none'; 
-                previewArea.style.display = 'flex';
-                
-                let content = codeInput.value.trim();
-                
-                if(!content.includes('<meta name="viewport"')) {
-                    const vp = '<meta name="viewport" content="width=device-width, initial-scale=1.0">';
-                    if(content.includes('<head>')) {
-                        content = content.replace('<head>', '<head>' + vp);
-                    } else if(content.includes('<html>')) {
-                        content = content.replace('<html>', '<html><head>' + vp + '</head>');
-                    } else {
-                        content = vp + content;
-                    }
-                }
-
-                if(!content) {
-                    content = "<div style='text-align:center; padding:50px; color:#8e8e93; font-family:-apple-system, sans-serif;'>Preview Vazio</div>";
-                }
-                
-                iframe.srcdoc = content;
+                document.getElementById('editor-area').style.display = 'none';
+                document.getElementById('toolbar').style.display = 'none'; 
+                document.getElementById('preview-area').style.display = 'flex';
+                updatePreview();
             }
         }
 
+        function updatePreview() {
+            let content = codeInput.value.trim();
+            
+            if(!content.includes('<meta name="viewport"')) {
+                const vp = '<meta name="viewport" content="width=device-width, initial-scale=1.0">';
+                if(content.includes('<head>')) {
+                    content = content.replace('<head>', '<head>' + vp);
+                } else if(content.includes('<html>')) {
+                    content = content.replace('<html>', '<html><head>' + vp + '</head>');
+                } else {
+                    content = vp + content;
+                }
+            }
+            if(!content) content = "<div style='text-align:center; padding:50px; color:#8e8e93; font-family:-apple-system;'>Preview</div>";
+            
+            iframe.srcdoc = content;
+        }
+
+        // --- EDITOR LOGIC ---
         const updateLines = () => {
             const lines = codeInput.value.split('\n').length;
             lineNums.innerHTML = Array.from({length: lines}, (_, i) => i + 1).join('<br>');
+            
+            // Auto update preview on Desktop
+            if(isDesktop) {
+                // Debounce simple para não recarregar a cada tecla rapidamente
+                clearTimeout(window.previewTimeout);
+                window.previewTimeout = setTimeout(updatePreview, 500);
+            }
         };
         
-        codeInput.addEventListener('scroll', () => { 
-            lineNums.scrollTop = codeInput.scrollTop;
-        });
-        
+        codeInput.addEventListener('scroll', () => { lineNums.scrollTop = codeInput.scrollTop; });
         codeInput.addEventListener('input', updateLines);
 
         function ins(txt) {
@@ -470,66 +519,47 @@
             const val = codeInput.value;
             codeInput.value = val.substring(0, start) + txt + val.substring(end);
             codeInput.selectionStart = codeInput.selectionEnd = start + txt.length;
-            
-            if(txt.includes('></')) {
-                codeInput.selectionStart = start + txt.indexOf('></') + 1;
-            }
-            if(txt.includes('""')) {
-                codeInput.selectionStart = start + txt.indexOf('""') + 1;
-            }
-            
-            codeInput.selectionEnd = codeInput.selectionStart;
+            if(txt.includes('></')) codeInput.selectionStart = start + txt.indexOf('></') + 1;
+            if(txt.includes('""')) codeInput.selectionStart = start + txt.indexOf('""') + 1;
             codeInput.focus();
             updateLines();
         }
-        
+
         function copyCode() { 
             navigator.clipboard.writeText(codeInput.value).then(() => {
-                let original = titleEl.innerText;
+                let old = titleEl.innerText;
                 titleEl.innerText = "Copiado!";
-                setTimeout(() => { titleEl.innerText = original; }, 1500);
+                setTimeout(() => titleEl.innerText = old, 1500);
             });
         }
         
         function clearCode() { 
-            if(confirm("Deseja limpar todo o editor?")) { 
-                codeInput.value = "";
-                updateLines();
-            }
+            if(confirm("Limpar editor?")) { codeInput.value = ""; updateLines(); }
         }
 
+        // --- FILES LOGIC ---
         function openFiles() {
             loadList();
             overlay.style.display = 'flex';
-            setTimeout(() => { overlay.classList.add('open'); }, 10);
+            setTimeout(() => overlay.classList.add('open'), 10);
             codeInput.blur();
         }
 
         function closeFiles() {
             overlay.classList.remove('open');
-            setTimeout(() => { overlay.style.display = 'none'; }, 300);
-        }
-
-        function createFile() {
-            codeInput.value = "";
-            titleEl.innerText = "Sem Título";
-            currentId = null;
-            updateLines();
-            closeFiles();
+            setTimeout(() => {
+                // Só esconde display none se não estiver em desktop mode (que usa opacity)
+                // ou força o hide
+                overlay.style.display = 'none';
+            }, 300);
         }
 
         function saveDoc() {
-            let name = prompt("Nome do arquivo:", titleEl.innerText === "Sem Título" ? "index.html" : titleEl.innerText);
+            let name = prompt("Nome do projeto:", titleEl.innerText === "Sem Título" ? "index.html" : titleEl.innerText);
             if (!name) return;
             if (!currentId) currentId = Date.now().toString();
             
-            const doc = { 
-                id: currentId,
-                name: name,
-                content: codeInput.value,
-                date: new Date().toLocaleDateString('pt-BR')
-            };
-            
+            const doc = { id: currentId, name: name, content: codeInput.value, date: new Date().toLocaleDateString('pt-BR') };
             localStorage.setItem('phtml_' + currentId, JSON.stringify(doc));
             titleEl.innerText = name;
             loadList();
@@ -538,19 +568,22 @@
         function loadList() {
             const listContainer = document.getElementById('saved-list-container');
             listContainer.innerHTML = '';
-            let count = 0;
-            
             let docs = [];
             for (let i = 0; i < localStorage.length; i++) {
-                const key = localStorage.key(i);
-                if (key.startsWith('phtml_')) {
-                    docs.push(JSON.parse(localStorage.getItem(key)));
+                if (localStorage.key(i).startsWith('phtml_')) {
+                    docs.push(JSON.parse(localStorage.getItem(localStorage.key(i))));
                 }
             }
             docs.sort((a,b) => b.id - a.id);
 
+            if(docs.length === 0) {
+                listContainer.innerHTML = '<div style="padding:20px; text-align:center; color:#555">Vazio</div>';
+                listContainer.style.background = 'transparent';
+                return;
+            }
+            
+            listContainer.style.background = '#1c1c1e';
             docs.forEach(doc => {
-                count++;
                 const div = document.createElement('div');
                 div.className = 'file-entry';
                 div.innerHTML = `
@@ -562,13 +595,6 @@
                 `;
                 listContainer.appendChild(div);
             });
-            
-            if (count === 0) {
-                listContainer.innerHTML = '<div style="padding:20px; text-align:center; color:#555">Nenhum projeto salvo</div>';
-                listContainer.style.background = 'transparent';
-            } else {
-                listContainer.style.background = '#1c1c1e';
-            }
         }
 
         function loadFile(id) {
@@ -579,73 +605,54 @@
                 currentId = doc.id;
                 updateLines();
                 closeFiles();
+                if(isDesktop) updatePreview();
             }
+        }
+        
+        function createFile() {
+            codeInput.value = "";
+            titleEl.innerText = "Sem Título";
+            currentId = null;
+            updateLines();
+            closeFiles();
+            if(isDesktop) updatePreview();
         }
 
         function delFile(id) {
-            if (confirm("Apagar permanentemente?")) {
+            if(confirm("Apagar?")) {
                 localStorage.removeItem('phtml_' + id);
-                if (currentId === id) {
-                    titleEl.innerText = "Sem Título";
-                    currentId = null;
-                }
+                if(currentId == id) createFile();
                 loadList();
             }
         }
 
         function exportData() {
             const data = [];
-            for(let i = 0; i < localStorage.length; i++) {
-                const key = localStorage.key(i);
-                if(key.startsWith('phtml_')) {
-                    data.push(JSON.parse(localStorage.getItem(key)));
-                }
+            for(let i=0; i<localStorage.length; i++) {
+                if(localStorage.key(i).startsWith('phtml_')) data.push(JSON.parse(localStorage.getItem(localStorage.key(i))));
             }
-            
-            if(data.length === 0) return alert("Nada para exportar.");
-            
-            const blob = new Blob([JSON.stringify(data, null, 2)], {type: "application/json"});
-            const url = URL.createObjectURL(blob);
+            if(!data.length) return alert("Vazio.");
             const a = document.createElement('a');
-            a.href = url;
-            a.download = `backup-ios-${new Date().toISOString().slice(0,10)}.json`;
-            document.body.appendChild(a);
+            a.href = URL.createObjectURL(new Blob([JSON.stringify(data)], {type: "application/json"}));
+            a.download = `backup-${new Date().toISOString().slice(0,10)}.json`;
             a.click();
-            setTimeout(() => { document.body.removeChild(a); }, 100);
         }
         
-        function importTrigger() { 
-            document.getElementById('json-input').click();
-        }
-        
+        function importTrigger() { document.getElementById('json-input').click(); }
         function importData(input) {
-            const file = input.files[0];
-            if(!file) return;
-            
             const reader = new FileReader();
             reader.onload = e => {
                 try {
-                    const data = JSON.parse(e.target.result);
-                    if(Array.isArray(data)) {
-                        data.forEach(doc => {
-                            if(doc.id && doc.name && doc.content) {
-                                localStorage.setItem('phtml_' + doc.id, JSON.stringify(doc));
-                            }
-                        });
-                        alert("Restaurado com sucesso.");
-                        loadList();
-                    }
-                } catch(err) {
-                    alert("Erro no arquivo.");
-                }
+                    JSON.parse(e.target.result).forEach(d => localStorage.setItem('phtml_'+d.id, JSON.stringify(d)));
+                    alert("Sucesso!"); loadList();
+                } catch(e) { alert("Erro."); }
             };
-            reader.readAsText(file);
+            if(input.files[0]) reader.readAsText(input.files[0]);
             input.value = '';
         }
 
-        // Inicialização: Abre a lista de arquivos automaticamente
+        // Init
         updateLines();
-        openFiles();
     </script>
 </body>
 </html>
