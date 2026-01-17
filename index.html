@@ -353,8 +353,8 @@
         body.desktop-mode .files-header,
         body.desktop-mode .file-list,
         body.desktop-mode .backup-area {
-            width: 600px;
-            max-width: 90vw;
+            width: 700px;
+            max-width: 95vw;
             border-radius: 0;
         }
         
@@ -368,12 +368,139 @@
             border-bottom-right-radius: 12px;
         }
 
+        body.desktop-mode .mode-selector {
+            width: 700px;
+            max-width: 95vw;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
         #mode-switch {
             font-size: 20px;
             margin-right: 10px;
             cursor: pointer;
             width: 40px;
             text-align: center;
+        }
+
+        /* --- MODE SELECTOR --- */
+        .mode-selector {
+            background: var(--ios-secondary-bg);
+            padding: 16px;
+            margin: 0 16px 20px 16px;
+            border-radius: 12px;
+        }
+        .mode-selector-title {
+            font-size: 13px;
+            color: var(--ios-gray-text);
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+        .mode-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        .mode-btn {
+            flex: 1;
+            padding: 12px;
+            border-radius: 8px;
+            background: var(--ios-tertiary-bg);
+            color: var(--ios-white);
+            font-size: 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .mode-btn:active {
+            opacity: 0.7;
+        }
+        .mode-btn.selected {
+            background: var(--ios-blue);
+            color: white;
+        }
+        .mode-btn-icon {
+            font-size: 24px;
+        }
+        .mode-btn-label {
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        /* --- MODE MENU POPUP --- */
+        .mode-menu {
+            position: fixed;
+            top: calc(var(--header-h) + env(safe-area-inset-top) + 8px);
+            right: 8px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(var(--blur-amt));
+            -webkit-backdrop-filter: blur(var(--blur-amt));
+            border: 0.5px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 8px;
+            z-index: 9999;
+            display: none;
+            min-width: 180px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+        }
+        
+        .mode-menu.show {
+            display: block;
+            animation: menuSlideIn 0.2s ease;
+        }
+
+        @keyframes menuSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .mode-menu-item {
+            padding: 12px 16px;
+            color: var(--ios-white);
+            font-size: 15px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        
+        .mode-menu-item:hover {
+            background: rgba(255,255,255,0.1);
+        }
+        
+        .mode-menu-item:active {
+            background: rgba(255,255,255,0.2);
+        }
+        
+        .mode-menu-item.active {
+            color: var(--ios-blue);
+        }
+        
+        .mode-menu-icon {
+            font-size: 20px;
+            width: 24px;
+            text-align: center;
+        }
+
+        .menu-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            z-index: 9998;
+            display: none;
+        }
+        
+        .menu-overlay.show {
+            display: block;
         }
 
     </style>
@@ -387,10 +514,23 @@
         <h1 id="doc-title">Meus Projetos</h1>
         
         <div style="display:flex; align-items:center;">
-            <button class="ios-btn" id="mode-switch" onclick="toggleMode()">🖥️</button>
+            <button class="ios-btn" id="mode-menu-btn" onclick="toggleModeMenu()">⋯</button>
             <button class="ios-btn bold" id="btn-save" onclick="saveDoc()" style="display:none">Salvar</button>
         </div>
     </header>
+
+    <!-- Menu flutuante de modo -->
+    <div class="menu-overlay" id="menu-overlay" onclick="closeModeMenu()"></div>
+    <div class="mode-menu" id="mode-menu">
+        <div class="mode-menu-item" id="menu-mobile" onclick="selectModeFromMenu('mobile')">
+            <span class="mode-menu-icon">📱</span>
+            <span>Modo Mobile</span>
+        </div>
+        <div class="mode-menu-item" id="menu-desktop" onclick="selectModeFromMenu('desktop')">
+            <span class="mode-menu-icon">🖥️</span>
+            <span>Modo Desktop</span>
+        </div>
+    </div>
 
     <div id="editor-area">
         <div id="line-numbers">1</div>
@@ -442,15 +582,15 @@
 
         <div class="file-list">
             <div class="mode-selector">
-                <div class="mode-selector-title">Escolher Modo de Visualização</div>
+                <div class="mode-selector-title">Modo de Visualização</div>
                 <div class="mode-buttons">
                     <button class="mode-btn" id="mobile-mode-btn" onclick="selectMode('mobile')">
                         <div class="mode-btn-icon">📱</div>
-                        <span>Mobile</span>
+                        <span class="mode-btn-label">Mobile</span>
                     </button>
                     <button class="mode-btn" id="desktop-mode-btn" onclick="selectMode('desktop')">
                         <div class="mode-btn-icon">🖥️</div>
-                        <span>Desktop</span>
+                        <span class="mode-btn-label">Desktop</span>
                     </button>
                 </div>
             </div>
@@ -478,12 +618,40 @@
         const iframe = document.getElementById('preview-frame');
         const titleEl = document.getElementById('doc-title');
         const overlay = document.getElementById('files-overlay');
-        const modeBtn = document.getElementById('mode-switch');
+        const modeMenu = document.getElementById('mode-menu');
+        const menuOverlay = document.getElementById('menu-overlay');
         const saveBtn = document.getElementById('btn-save');
         
         let currentId = null;
         let isDesktop = false;
-        let currentView = 'files'; // files, code, view
+        let currentView = 'files';
+
+        // Menu de modo
+        function toggleModeMenu() {
+            const isShowing = modeMenu.classList.contains('show');
+            if (isShowing) {
+                closeModeMenu();
+            } else {
+                modeMenu.classList.add('show');
+                menuOverlay.classList.add('show');
+                updateModeMenuSelection();
+            }
+        }
+
+        function closeModeMenu() {
+            modeMenu.classList.remove('show');
+            menuOverlay.classList.remove('show');
+        }
+
+        function updateModeMenuSelection() {
+            document.getElementById('menu-mobile').classList.toggle('active', !isDesktop);
+            document.getElementById('menu-desktop').classList.toggle('active', isDesktop);
+        }
+
+        function selectModeFromMenu(mode) {
+            selectMode(mode);
+            closeModeMenu();
+        } // files, code, view
 
         // Carregar preferência de modo salva
         function loadModePreference() {
@@ -499,19 +667,22 @@
             isDesktop = mode === 'desktop';
             localStorage.setItem('viewMode', mode);
             
+            // Atualizar botões do seletor
             const mobileBtn = document.getElementById('mobile-mode-btn');
             const desktopBtn = document.getElementById('desktop-mode-btn');
             
-            mobileBtn.classList.toggle('selected', !isDesktop);
-            desktopBtn.classList.toggle('selected', isDesktop);
+            if (mobileBtn && desktopBtn) {
+                mobileBtn.classList.toggle('selected', !isDesktop);
+                desktopBtn.classList.toggle('selected', isDesktop);
+            }
             
             if (isDesktop) {
                 body.classList.add('desktop-mode');
-                modeBtn.innerText = "📱";
             } else {
                 body.classList.remove('desktop-mode');
-                modeBtn.innerText = "🖥️";
             }
+            
+            updateModeMenuSelection();
         }
 
         function toggleMode() {
