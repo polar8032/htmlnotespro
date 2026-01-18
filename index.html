@@ -5,313 +5,341 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="theme-color" content="#121214">
-    <title>PocketHTML Pro</title>
+    <title>PocketHTML Hybrid</title>
     <style>
         :root {
-            /* Cores Modernas (Dark Premium) */
-            --bg-app: #121214; /* Fundo principal */
-            --bg-secondary: #202024; /* Fundo de cartões/listas */
-            --bg-tertiary: #29292e; /* Detalhes */
+            --ios-bg: #000000;
+            --ios-secondary-bg: #1c1c1e;
+            --ios-tertiary-bg: #2c2c2e;
+            --ios-separator: #38383a;
+            --ios-blue: #0a84ff;
+            --ios-red: #ff453a;
+            --ios-green: #30d158;
+            --ios-orange: #ff9f0a;
+            --ios-gray-text: #8e8e93;
+            --ios-white: #ffffff;
             
-            --accent-blue: #5e81ac; /* Azul nórdico suave */
-            --accent-primary: #82aaff;
-            --accent-green: #a3be8c;
-            --accent-red: #bf616a;
-            --accent-orange: #d08770;
-            
-            --text-main: #e1e1e6;
-            --text-dim: #a8a8b3;
-            
-            /* Glassmorphism Refinado */
-            --glass-bg: rgba(32, 32, 36, 0.85);
-            --glass-border: rgba(255, 255, 255, 0.08);
-            --blur-amt: 25px;
+            --glass-bg: rgba(30, 30, 30, 0.85);
+            --glass-border: rgba(255, 255, 255, 0.15);
+            --blur-amt: 20px;
 
-            /* Tamanhos */
-            --header-h: 50px;
-            --toolbar-h: 52px;
-            --tab-h: 80px;
+            --header-h: 44px;
+            --toolbar-h: 48px;
+            --tab-h: 83px;
             
-            --code-font: 'JetBrains Mono', 'Fira Code', 'Menlo', monospace;
+            --code-font: 'Menlo', 'Courier New', monospace;
+            --code-line-height: 24px;
         }
 
         * { 
             box-sizing: border-box; 
             -webkit-tap-highlight-color: transparent;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         }
 
         body {
             margin: 0;
-            background-color: var(--bg-app);
-            color: var(--text-main);
+            background-color: var(--ios-bg);
+            color: var(--ios-white);
             position: fixed; top: 0; left: 0; right: 0; bottom: 0;
             overflow: hidden;
+            transition: background 0.3s;
         }
 
-        /* --- ANIMAÇÕES DE CLIQUE (O "Pulo do Gato") --- */
-        button, .file-entry, .folder-header, .create-btn, .tab-item {
-            transition: transform 0.1s cubic-bezier(0.4, 0, 0.2, 1), background 0.2s, opacity 0.2s;
-            cursor: pointer;
-        }
+        button { border: none; background: none; cursor: pointer; }
         
-        /* Efeito de "apertar" */
-        button:active, .file-entry:active, .folder-header:active, .create-btn:active, .tab-item:active {
-            transform: scale(0.94); 
-            opacity: 0.8;
-        }
-
-        button { border: none; background: none; outline: none; }
-
         .ios-btn {
-            color: var(--accent-primary);
-            font-size: 16px;
-            font-weight: 500;
-            padding: 8px 12px;
-            border-radius: 8px;
+            color: var(--ios-blue);
+            font-size: 17px;
+            font-weight: 400;
+            padding: 8px 16px;
+            transition: opacity 0.2s;
         }
-        .ios-btn:active { background: rgba(130, 170, 255, 0.15); }
-        .ios-btn.bold { font-weight: 700; color: var(--accent-primary); }
+        .ios-btn:active { opacity: 0.5; }
+        .ios-btn.bold { font-weight: 600; }
 
         /* --- HEADER --- */
         header {
-            position: fixed; top: 0; left: 0; right: 0;
+            position: fixed;
+            top: 0; left: 0; right: 0;
             height: calc(var(--header-h) + env(safe-area-inset-top));
             padding-top: env(safe-area-inset-top);
             background-color: var(--glass-bg);
             backdrop-filter: blur(var(--blur-amt));
             -webkit-backdrop-filter: blur(var(--blur-amt));
-            border-bottom: 1px solid var(--glass-border);
-            display: flex; justify-content: space-between; align-items: center;
-            z-index: 100; padding-left: 12px; padding-right: 12px;
-            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
+            border-bottom: 0.5px solid var(--glass-border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 100;
+            padding-left: 8px;
+            padding-right: 8px;
         }
 
         h1 { 
-            font-size: 16px; font-weight: 600; color: var(--text-main);
-            letter-spacing: -0.5px;
-            position: absolute; left: 50%; transform: translateX(-50%);
-            white-space: nowrap; max-width: 50%; overflow: hidden; text-overflow: ellipsis;
+            font-size: 17px;
+            font-weight: 600;
+            color: var(--ios-white);
+            margin: 0;
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            white-space: nowrap;
+            max-width: 50%;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         /* --- EDITOR AREA --- */
         #editor-area {
-            position: fixed; top: 0; bottom: 0; left: 0; right: 0;
+            position: fixed;
+            top: 0; 
+            bottom: 0;
+            left: 0; right: 0;
             padding-top: calc(var(--header-h) + env(safe-area-inset-top));
             padding-bottom: calc(var(--tab-h) + var(--toolbar-h) + env(safe-area-inset-bottom));
-            display: none; background-color: var(--bg-app); z-index: 10;
+            display: none;
+            background-color: var(--ios-bg);
+            z-index: 10;
+            transition: all 0.3s ease;
         }
 
         #line-numbers {
-            width: 40px;
-            background-color: var(--bg-app);
-            color: #444; /* Linhas discretas */
+            width: 42px;
+            background-color: var(--ios-bg);
+            color: #555;
             font-family: var(--code-font);
-            font-size: 13px; line-height: 24px;
-            padding-top: 15px; padding-right: 8px;
-            text-align: right; user-select: none;
-            border-right: 1px solid rgba(255,255,255,0.05);
+            font-size: 13px;
+            line-height: var(--code-line-height);
+            padding-top: 15px; 
+            padding-right: 8px;
+            border-right: 0.5px solid #333;
+            text-align: right;
+            overflow: hidden;
+            user-select: none;
         }
 
         #code-input {
             flex: 1;
             background: transparent;
-            color: #d7d7d7;
+            color: #d1d1d1;
             font-family: var(--code-font);
-            font-size: 13px; line-height: 24px;
-            padding: 15px 10px; border: none; resize: none; outline: none;
-            white-space: pre; overflow: auto;
+            font-size: 13px;
+            line-height: var(--code-line-height);
+            padding: 15px 10px; 
+            border: none;
+            resize: none;
+            outline: none;
+            white-space: pre;
+            overflow: auto;
             -webkit-overflow-scrolling: touch;
         }
+        #code-input::-webkit-scrollbar { display: none; }
 
         /* --- PREVIEW AREA --- */
         #preview-area {
-            position: fixed; top: 0; bottom: calc(var(--tab-h) + env(safe-area-inset-bottom));
+            position: fixed;
+            top: 0;
+            bottom: calc(var(--tab-h) + env(safe-area-inset-bottom));
             left: 0; right: 0;
             padding-top: calc(var(--header-h) + env(safe-area-inset-top));
-            background-color: var(--bg-app); z-index: 20; display: none;
+            background-color: var(--ios-bg);
+            z-index: 20; 
+            display: none;
             flex-direction: column;
+            border-left: 0.5px solid var(--ios-separator);
         }
 
         .url-bar {
-            height: 40px;
-            background: #191919;
-            color: var(--accent-green);
-            font-size: 12px; font-weight: 600; font-family: var(--code-font);
-            display: flex; align-items: center; justify-content: center;
-            margin: 10px 16px; border-radius: 8px; flex-shrink: 0;
-            border: 1px solid var(--glass-border);
-            gap: 8px;
+            height: 36px;
+            background: #2c2c2e;
+            color: #999;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 10px;
+            border-radius: 10px;
+            flex-shrink: 0;
         }
 
-        iframe { flex: 1; border: none; background: white; width: 100%; border-radius: 12px 12px 0 0; }
+        iframe { flex: 1; border: none; background: white; width: 100%; }
 
-        /* --- TOOLBAR (Teclas 3D) --- */
+        /* --- TOOLBAR --- */
         #toolbar {
-            position: fixed; bottom: calc(var(--tab-h) + env(safe-area-inset-bottom));
-            left: 0; right: 0; height: var(--toolbar-h);
-            background-color: var(--bg-secondary);
-            border-top: 1px solid var(--glass-border);
-            display: none; align-items: center; gap: 8px; padding: 0 10px;
-            overflow-x: auto; z-index: 100;
-            box-shadow: 0 -4px 20px rgba(0,0,0,0.2);
+            position: fixed;
+            bottom: calc(var(--tab-h) + env(safe-area-inset-bottom));
+            left: 0; right: 0;
+            height: var(--toolbar-h);
+            background-color: #2a2a2c;
+            backdrop-filter: blur(var(--blur-amt));
+            -webkit-backdrop-filter: blur(var(--blur-amt));
+            display: none;
+            align-items: center;
+            gap: 6px;
+            padding: 0 6px;
+            overflow-x: auto;
+            z-index: 100;
+            border-top: 0.5px solid var(--ios-separator);
         }
         #toolbar::-webkit-scrollbar { display: none; }
         
-        /* Estilo de Tecla Física */
         .key-btn {
-            height: 38px; min-width: 36px; padding: 0 12px;
-            background: #323238; /* Cor da tecla */
-            color: var(--text-main);
-            border-radius: 6px;
-            font-family: var(--code-font); font-size: 15px;
-            display: flex; align-items: center; justify-content: center;
+            height: 36px;
+            min-width: 32px;
+            padding: 0 10px;
+            background: rgba(255,255,255,0.15);
+            color: white;
+            border-radius: 5px;
+            font-family: var(--code-font);
+            font-size: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             flex-shrink: 0;
-            
-            /* Efeito 3D (Borda inferior e sombra) */
-            border-bottom: 2px solid #1a1a1d; 
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-            margin-bottom: 2px; /* Espaço para o movimento */
+            margin-top: 2px;
         }
+        .key-btn:active { background: rgba(255,255,255,0.3); }
+        .action-key { font-family: -apple-system; font-size: 13px; font-weight: 500;}
+        .copy { color: var(--ios-green); background: rgba(48, 209, 88, 0.15); }
+        .clear { color: var(--ios-red); background: rgba(255, 69, 58, 0.15); }
 
-        /* Quando a tecla é pressionada */
-        .key-btn:active {
-            transform: translateY(2px) !important; /* Afunda a tecla */
-            border-bottom: 0px solid transparent;
-            box-shadow: none;
-            background: var(--accent-primary);
-            color: #121214;
-        }
-
-        .action-key { font-family: -apple-system; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
-        .copy { color: var(--accent-green); background: rgba(163, 190, 140, 0.15); border-bottom: 2px solid rgba(163, 190, 140, 0.3); }
-        .clear { color: var(--accent-red); background: rgba(191, 97, 106, 0.15); border-bottom: 2px solid rgba(191, 97, 106, 0.3); }
-
-        /* --- TAB BAR --- */
+        /* --- TAB BAR (MOBILE ONLY) --- */
         #tab-bar {
-            position: fixed; bottom: 0; left: 0; right: 0;
+            position: fixed;
+            bottom: 0; left: 0; right: 0;
             height: calc(var(--tab-h) + env(safe-area-inset-bottom));
             padding-bottom: env(safe-area-inset-bottom);
             background-color: var(--glass-bg);
             backdrop-filter: blur(var(--blur-amt));
             -webkit-backdrop-filter: blur(var(--blur-amt));
-            border-top: 1px solid var(--glass-border);
-            display: flex; justify-content: space-around; align-items: flex-start;
-            padding-top: 10px; z-index: 100;
+            border-top: 0.5px solid var(--glass-border);
+            display: flex;
+            justify-content: space-around;
+            align-items: flex-start;
+            padding-top: 8px;
+            z-index: 100;
+            transition: transform 0.3s;
         }
 
         .tab-item {
-            display: flex; flex-direction: column; align-items: center;
-            color: #666; width: 70px; gap: 4px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: #888;
+            width: 70px;
+            transition: color 0.2s;
         }
-        .tab-icon { font-size: 24px; filter: grayscale(100%); transition: filter 0.3s, transform 0.2s; }
-        .tab-label { font-size: 10px; font-weight: 600; }
-        
-        .tab-item.active { color: var(--accent-primary); }
-        .tab-item.active .tab-icon { filter: grayscale(0%); transform: translateY(-2px); }
+        .tab-icon { font-size: 26px; margin-bottom: 2px; }
+        .tab-label { font-size: 10px; font-weight: 500; }
+        .tab-item.active { color: var(--ios-blue); }
 
-        /* --- FILES OVERLAY (Bonito e Limpo) --- */
+        /* --- FILES OVERLAY --- */
         #files-overlay {
-            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-            background: var(--bg-app); z-index: 2000;
-            display: flex; flex-direction: column;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: var(--ios-bg);
+            z-index: 2000;
+            display: flex;
+            flex-direction: column;
         }
         
         .files-header {
-            height: calc(60px + env(safe-area-inset-top));
+            height: calc(56px + env(safe-area-inset-top));
             padding-top: env(safe-area-inset-top);
-            background: var(--bg-secondary);
-            display: flex; justify-content: center; align-items: center;
-            flex-shrink: 0; border-bottom: 1px solid var(--glass-border);
+            background: var(--ios-secondary-bg);
+            border-bottom: 0.5px solid var(--ios-separator);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-left: 16px; 
+            padding-right: 16px;
+            flex-shrink: 0;
         }
-        .modal-title { font-weight: 700; font-size: 18px; color: var(--text-main); }
-
-        .file-list { 
-            flex: 1; overflow-y: auto; padding: 20px 16px; 
-            background: var(--bg-app); 
+        .modal-title { font-weight: 600; font-size: 17px; }
+        .file-list { flex: 1; overflow-y: auto; padding: 20px 16px; background: var(--ios-bg); }
+        
+        /* FOLDERS STYLING */
+        .folder-container {
+            margin-bottom: 16px;
         }
-        
-        /* Botão Criar Novo (Destaque) */
-        .create-btn { 
-            background: linear-gradient(135deg, var(--bg-tertiary) 0%, var(--bg-secondary) 100%);
-            border: 1px solid var(--glass-border);
-            border-radius: 16px; padding: 18px; 
-            display: flex; align-items: center; 
-            color: var(--accent-primary); font-size: 17px; font-weight: 600;
-            margin-bottom: 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-        }
-        
-        .folder-container { margin-bottom: 16px; }
-        
         .folder-header {
-            background: transparent; padding: 10px 4px;
-            display: flex; justify-content: space-between; align-items: center;
-            color: var(--text-dim); text-transform: uppercase; font-size: 12px; font-weight: 700; letter-spacing: 1px;
+            background: var(--ios-secondary-bg);
+            padding: 16px;
+            border-radius: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            transition: background 0.2s;
         }
-        .folder-arrow { font-size: 10px; transition: transform 0.3s; }
+        .folder-header:active { background: #2c2c2e; }
+        .folder-title { font-size: 17px; font-weight: 500; display: flex; align-items: center; gap: 8px; }
+        .folder-count { color: var(--ios-gray-text); font-size: 15px; }
+        .folder-arrow { color: var(--ios-gray-text); font-size: 14px; transition: transform 0.3s ease; }
         .folder-container.open .folder-arrow { transform: rotate(90deg); }
         
-        .folder-content { 
-            display: none; margin-top: 8px; animation: slideDown 0.3s ease; 
+        .folder-content {
+            display: none;
+            margin-top: 4px;
+            overflow: hidden;
+            animation: slideDown 0.3s ease;
         }
         .folder-container.open .folder-content { display: block; }
+        @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* Cards de Arquivos */
-        .file-group { display: flex; flex-direction: column; gap: 10px; }
+        .create-btn { background: var(--ios-secondary-bg); border-radius: 12px; padding: 14px; display: flex; align-items: center; color: var(--ios-blue); font-size: 17px; margin-bottom: 24px; cursor: pointer;}
+        .file-entry { background: var(--ios-secondary-bg); padding: 16px; display: flex; justify-content: space-between; align-items: center; border-bottom: 0.5px solid #333; cursor: pointer;}
+        .file-group { border-radius: 12px; overflow: hidden; }
+        .file-entry:last-child { border-bottom: none; }
+        .file-info { flex: 1; }
+        .file-name { font-size: 17px; color: white; margin-bottom: 4px; display: flex; align-items: center;}
+        .file-date { font-size: 14px; color: var(--ios-gray-text); }
+        .delete-btn { color: var(--ios-red); padding: 10px; font-size: 18px; }
         
-        .file-entry { 
-            background: var(--bg-secondary); 
-            border: 1px solid rgba(255,255,255,0.03);
-            border-radius: 12px; padding: 16px; 
-            display: flex; justify-content: space-between; align-items: center;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        }
+        .backup-area { background: var(--ios-secondary-bg); padding: 20px 16px; padding-bottom: calc(20px + env(safe-area-inset-bottom)); border-top: 0.5px solid var(--ios-separator); }
+        .ios-full-btn { width: 100%; padding: 14px; border-radius: 12px; font-size: 17px; font-weight: 600; margin-bottom: 12px; display: flex; justify-content: center; align-items: center; }
+        .btn-green { background: var(--ios-green); color: white; }
+        .btn-gray { background: var(--ios-tertiary-bg); color: var(--ios-blue); }
+
+        /* --- DESKTOP MODE --- */
+        body.desktop-mode { background-color: #1e1e1e; }
+        body.desktop-mode #tab-bar { transform: translateY(100%); }
+        body.desktop-mode #editor-area { width: 50%; padding-bottom: var(--toolbar-h); border-right: 1px solid #333; }
+        body.desktop-mode #preview-area { display: flex !important; left: 50%; width: 50%; bottom: 0; padding-top: calc(var(--header-h) + env(safe-area-inset-top)); border-left: 1px solid #000; }
+        body.desktop-mode #toolbar { width: 50%; bottom: 0; background-color: #252526; }
         
-        .file-name { font-size: 16px; color: var(--text-main); margin-bottom: 4px; display: flex; align-items: center; font-weight: 500;}
-        .file-date { font-size: 12px; color: #666; }
-        .delete-btn { color: var(--accent-red); padding: 8px; font-size: 16px; opacity: 0.7; }
+        body.desktop-mode .files-header,
+        body.desktop-mode .file-list,
+        body.desktop-mode .backup-area { width: 700px; max-width: 95vw; margin: 0 auto; border-radius: 0; }
+        body.desktop-mode .files-header { border-top-left-radius: 12px; border-top-right-radius: 12px; }
+        body.desktop-mode .backup-area { border-bottom-left-radius: 12px; border-bottom-right-radius: 12px; }
+        body.desktop-mode .file-list .create-btn,
+        body.desktop-mode .file-list .folder-container { width: 700px; max-width: 95vw; margin-left: auto; margin-right: auto; }
 
-        .backup-area { background: var(--bg-secondary); padding: 20px 16px; padding-bottom: calc(30px + env(safe-area-inset-bottom)); border-top: 1px solid var(--glass-border); }
-        .ios-full-btn { width: 100%; padding: 16px; border-radius: 14px; font-size: 16px; font-weight: 600; margin-bottom: 12px; display: flex; justify-content: center; align-items: center; border: none; }
-        .btn-green { background: var(--accent-green); color: #121214; }
-        .btn-gray { background: var(--bg-tertiary); color: var(--text-main); }
-
-        /* Menu */
-        .menu-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 9998; display: none; background: rgba(0,0,0,0.5); backdrop-filter: blur(2px);}
+        /* --- MENU --- */
+        .menu-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 9998; display: none; }
         .menu-overlay.show { display: block; }
-        
-        .mode-menu { 
-            position: fixed; top: calc(var(--header-h) + env(safe-area-inset-top) + 8px); right: 12px; 
-            background: #252529; border: 1px solid var(--glass-border); 
-            border-radius: 16px; padding: 8px; z-index: 9999; display: none; 
-            min-width: 200px; box-shadow: 0 10px 40px rgba(0,0,0,0.6); 
-            transform-origin: top right;
-        }
-        .mode-menu.show { display: block; animation: menuPop 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-        @keyframes menuPop { from { opacity: 0; transform: scale(0.8); } to { opacity: 1; transform: scale(1); } }
-        
-        .mode-menu-item { padding: 14px 16px; color: var(--text-main); font-size: 14px; border-radius: 10px; display: flex; align-items: center; gap: 12px; }
-        .mode-menu-item:hover { background: rgba(255,255,255,0.05); }
-        .mode-menu-item.active { background: rgba(130, 170, 255, 0.1); color: var(--accent-primary); }
-
-        /* --- DESKTOP TWEAKS --- */
-        body.desktop-mode #editor-area { border-right: 1px solid #333; }
-        body.desktop-mode #preview-area { border-left: 1px solid #000; }
-        body.desktop-mode .file-entry:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
+        .mode-menu { position: fixed; top: calc(var(--header-h) + env(safe-area-inset-top) + 8px); right: 8px; background: var(--glass-bg); backdrop-filter: blur(var(--blur-amt)); -webkit-backdrop-filter: blur(var(--blur-amt)); border: 0.5px solid var(--glass-border); border-radius: 12px; padding: 8px; z-index: 9999; display: none; min-width: 180px; box-shadow: 0 8px 24px rgba(0,0,0,0.5); }
+        .mode-menu.show { display: block; animation: menuSlideIn 0.2s ease; }
+        @keyframes menuSlideIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+        .mode-menu-item { padding: 12px 16px; color: var(--ios-white); font-size: 15px; border-radius: 8px; display: flex; align-items: center; gap: 12px; cursor: pointer; transition: background 0.2s; }
+        .mode-menu-item:hover { background: rgba(255,255,255,0.1); }
+        .mode-menu-item.active { color: var(--ios-blue); }
+        .mode-menu-icon { font-size: 20px; width: 24px; text-align: center; }
 
     </style>
 </head>
-<body>
+<body class="">
     <header id="main-header">
         <button class="ios-btn" onclick="openFiles()">
-            <span style="font-size:22px;">📂</span>
+            <span style="font-size:20px; margin-right:2px">📂</span>
         </button>
         
         <h1 id="doc-title">Meus Projetos</h1>
         
-        <div style="display:flex; align-items:center; gap: 8px;">
-            <button class="ios-btn" id="mode-menu-btn" onclick="toggleModeMenu()" style="display:none; font-size: 20px; padding: 4px 8px;">•••</button>
+        <div style="display:flex; align-items:center;">
+            <button class="ios-btn" id="mode-menu-btn" onclick="toggleModeMenu()" style="display:none">⋯</button>
             <button class="ios-btn bold" id="btn-save" onclick="saveDoc()" style="display:none">Salvar</button>
         </div>
     </header>
@@ -319,50 +347,51 @@
     <div class="menu-overlay" id="menu-overlay" onclick="closeModeMenu()"></div>
     <div class="mode-menu" id="mode-menu">
         <div class="mode-menu-item" id="menu-mobile" onclick="selectModeFromMenu('mobile')">
-            <span class="mode-menu-icon">📱</span> <span>Modo Mobile</span>
+            <span class="mode-menu-icon">📱</span>
+            <span>Modo Mobile</span>
         </div>
         <div class="mode-menu-item" id="menu-desktop" onclick="selectModeFromMenu('desktop')">
-            <span class="mode-menu-icon">🖥️</span> <span>Modo Desktop</span>
+            <span class="mode-menu-icon">🖥️</span>
+            <span>Modo Desktop</span>
         </div>
-        <div style="height:1px; background:rgba(255,255,255,0.1); margin:6px 0"></div>
+        <div style="height:1px; background:rgba(255,255,255,0.1); margin:4px 0"></div>
         <div class="mode-menu-item" onclick="downloadCurrentFile()">
-            <span class="mode-menu-icon">⬇</span> <span>Baixar .html</span>
+            <span class="mode-menu-icon">⬇</span>
+            <span>Baixar .html</span>
         </div>
     </div>
 
     <div id="editor-area">
         <div id="line-numbers">1</div>
-        <textarea id="code-input" spellcheck="false" autocomplete="off" autocapitalize="off" placeholder=""></textarea>
+        <textarea id="code-input" spellcheck="false" autocomplete="off" autocapitalize="off" placeholder="Comece a digitar..."></textarea>
     </div>
 
     <div id="preview-area">
-        <div class="url-bar">
-            <span>🔒</span> Local Preview <span style="opacity:0.5; font-weight:400; margin-left:5px">/index.html</span>
-        </div>
+        <div class="url-bar"><span>🔒 Local Preview</span></div>
         <iframe id="preview-frame"></iframe>
     </div>
 
     <div id="toolbar">
         <button class="key-btn action-key copy" onclick="copyCode()">Copiar</button>
         <button class="key-btn action-key clear" onclick="clearCode()">Limpar</button>
-        <div style="width:1px; height:24px; background:rgba(255,255,255,0.1); margin:0 8px;"></div>
+        <div style="width:1px; height:20px; background:rgba(255,255,255,0.1); margin:0 5px;"></div>
         <button class="key-btn" onclick="ins('<')">&lt;</button>
         <button class="key-btn" onclick="ins('>')">&gt;</button>
         <button class="key-btn" onclick="ins('/')">/</button>
         <button class="key-btn" onclick="ins('=')">=</button>
         <button class="key-btn" onclick="ins('\"')">\"</button>
         <button class="key-btn" onclick="ins('!')">!</button>
-        <button class="key-btn" style="min-width:55px; font-size:13px;" onclick="ins('class=\"\"')">class</button>
-        <button class="key-btn" style="min-width:45px; font-size:13px;" onclick="ins('<div></div>')">div</button>
+        <button class="key-btn" style="min-width:50px" onclick="ins('class=\"\"')">class</button>
+        <button class="key-btn" style="min-width:40px" onclick="ins('<div></div>')">div</button>
     </div>
 
     <div id="tab-bar">
         <button class="tab-item" id="tab-files" onclick="setMode('files')">
-            <div class="tab-icon">📁</div> 
-            <span class="tab-label">Arquivos</span>
+            <div class="tab-icon">📂</div> 
+            <span class="tab-label">Ficheiros</span>
         </button>
         <button class="tab-item" id="tab-code" onclick="setMode('code')">
-            <div class="tab-icon">⚡</div> 
+            <div class="tab-icon">💻</div> 
             <span class="tab-label">Editor</span>
         </button>
         <button class="tab-item" id="tab-view" onclick="setMode('view')">
@@ -373,22 +402,22 @@
 
     <div id="files-overlay">
         <div class="files-header">
+            <div style="width:50px"></div>
             <span class="modal-title">Meus Projetos</span>
+            <div style="width:50px"></div>
         </div>
 
         <div class="file-list">
             <div class="create-btn" onclick="createFile()">
-                <div style="width:32px; height:32px; background:rgba(130, 170, 255, 0.2); border-radius:50%; display:flex; align-items:center; justify-content:center; margin-right:12px;">
-                    <span style="font-size:20px; font-weight:600; color:var(--accent-primary)">+</span>
-                </div>
+                <span style="font-size:22px; margin-right:12px; font-weight:300">+</span> 
                 Novo Documento
             </div>
 
             <div class="folder-container" id="folder-drafts" style="display:none">
                 <div class="folder-header" onclick="toggleFolder('folder-drafts')">
-                    <div style="display:flex; align-items:center; gap:8px">
-                        <span>Rascunhos</span>
-                        <span style="background:#333; padding:2px 6px; border-radius:4px; font-size:10px" id="count-drafts">0</span>
+                    <div class="folder-title">
+                        <span>📝 Rascunhos</span>
+                        <span class="folder-count" id="count-drafts">(0)</span>
                     </div>
                     <span class="folder-arrow">▶</span>
                 </div>
@@ -399,9 +428,9 @@
 
             <div class="folder-container open" id="folder-saved">
                 <div class="folder-header" onclick="toggleFolder('folder-saved')">
-                    <div style="display:flex; align-items:center; gap:8px">
-                        <span>Salvos</span>
-                        <span style="background:#333; padding:2px 6px; border-radius:4px; font-size:10px" id="count-saved">0</span>
+                    <div class="folder-title">
+                        <span>📂 Meus Projetos</span>
+                        <span class="folder-count" id="count-saved">(0)</span>
                     </div>
                     <span class="folder-arrow">▶</span>
                 </div>
@@ -412,8 +441,8 @@
         </div>
 
         <div class="backup-area">
-            <button class="ios-full-btn btn-green" onclick="exportData()">⬇ Backup JSON</button>
-            <button class="ios-full-btn btn-gray" onclick="importTrigger()">⬆ Restaurar Backup</button>
+            <button class="ios-full-btn btn-green" onclick="exportData()">⬇ Backup (JSON)</button>
+            <button class="ios-full-btn btn-gray" onclick="importTrigger()">⬆ Restaurar</button>
         </div>
     </div>
 
@@ -608,7 +637,7 @@
             
             titleEl.innerText = name;
             titleEl.style.fontStyle = "normal";
-            // alert("Salvo com sucesso!"); // Removido para ficar mais fluido
+            alert("Salvo com sucesso!");
             
             if(currentView === 'files') loadList();
         }
@@ -664,12 +693,12 @@
                 
                 const isDraft = doc.isDraft === true; 
                 const icon = isDraft ? '📝' : '📄';
-                const colorStyle = isDraft ? 'color:var(--accent-orange)' : 'color:var(--text-main)';
+                const colorStyle = isDraft ? 'color:var(--ios-orange)' : 'color:white';
                 
                 div.innerHTML = `
-                    <div class="file-info" style="flex:1" onclick="loadFile('${doc.id}')">
+                    <div class="file-info" onclick="loadFile('${doc.id}')">
                         <div class="file-name" style="${colorStyle}">
-                            <span style="margin-right:12px; font-size:18px">${icon}</span>${doc.name}
+                            <span style="margin-right:8px; font-size:14px">${icon}</span>${doc.name}
                         </div>
                         <div class="file-date">${doc.date}</div>
                     </div>
@@ -686,15 +715,18 @@
             });
 
             // Atualiza contadores
-            countDrafts.innerText = `${draftCount}`;
-            countSaved.innerText = `${savedCount}`;
+            countDrafts.innerText = `(${draftCount})`;
+            countSaved.innerText = `(${savedCount})`;
 
             // Esconde pasta rascunhos se estiver vazia
             folderDrafts.style.display = draftCount > 0 ? 'block' : 'none';
 
             // Mensagem de vazio nos salvos
             if(savedCount === 0) {
-                savedContainer.innerHTML = '<div style="padding:20px; text-align:center; color:#555; font-size:13px; font-style:italic">Nenhum projeto salvo.</div>';
+                savedContainer.innerHTML = '<div style="padding:20px; text-align:center; color:#555; font-size:14px">Nenhum projeto salvo.</div>';
+                savedContainer.style.background = 'transparent';
+            } else {
+                savedContainer.style.background = '#1c1c1e';
             }
         }
 
