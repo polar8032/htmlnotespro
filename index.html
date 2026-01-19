@@ -9,29 +9,26 @@
     <title>PocketHTML Pro</title>
     <style>
         :root {
-            /* Cores Modernas (Dark Premium) */
             --bg-app: #121214; 
             --bg-secondary: #202024;
             --bg-tertiary: #29292e;
-            
             --accent-blue: #5e81ac;
             --accent-primary: #82aaff;
             --accent-green: #a3be8c;
             --accent-red: #bf616a;
             --accent-orange: #d08770;
-            
             --text-main: #e1e1e6;
             --text-dim: #a8a8b3;
-            
             --glass-bg: rgba(32, 32, 36, 0.85);
             --glass-border: rgba(255, 255, 255, 0.08);
             --blur-amt: 25px;
-
             --header-h: 50px;
             --toolbar-h: 52px;
             --tab-h: 80px;
-            
             --code-font: 'JetBrains Mono', 'Fira Code', 'Menlo', monospace;
+            /* Definição rigorosa de altura de linha para sincronia */
+            --editor-line-height: 24px;
+            --editor-font-size: 13px;
         }
 
         * { 
@@ -55,8 +52,7 @@
             cursor: pointer;
         }
         button:active, .file-entry:active, .folder-header:active, .create-btn:active, .tab-item:active {
-            transform: scale(0.94); 
-            opacity: 0.8;
+            transform: scale(0.94); opacity: 0.8;
         }
 
         button { border: none; background: none; outline: none; }
@@ -71,7 +67,6 @@
         .ios-btn:active { background: rgba(130, 170, 255, 0.15); }
         .ios-btn.bold { font-weight: 700; color: var(--accent-primary); }
 
-        /* HEADER */
         header {
             position: fixed; top: 0; left: 0; right: 0;
             height: calc(var(--header-h) + env(safe-area-inset-top));
@@ -92,12 +87,19 @@
             white-space: nowrap; max-width: 50%; overflow: hidden; text-overflow: ellipsis;
         }
 
-        /* EDITOR AREA */
+        /* --- EDITOR AREA REESTRUTURADA PARA AUTO-GROW --- */
         #editor-area {
             position: fixed; top: 0; bottom: 0; left: 0; right: 0;
             padding-top: calc(var(--header-h) + env(safe-area-inset-top));
             padding-bottom: calc(var(--tab-h) + var(--toolbar-h) + env(safe-area-inset-bottom));
-            display: none; background-color: var(--bg-app); z-index: 10;
+            display: none; 
+            background-color: var(--bg-app); 
+            z-index: 10;
+            
+            /* MUDANÇA CRÍTICA: O pai rola, não o textarea */
+            overflow-y: auto;
+            align-items: flex-start; /* Permite que os filhos cresçam */
+            -webkit-overflow-scrolling: touch; /* Suavidade no iOS */
         }
 
         #line-numbers {
@@ -105,10 +107,17 @@
             background-color: var(--bg-app);
             color: #444;
             font-family: var(--code-font);
-            font-size: 13px; line-height: 24px;
-            padding-top: 15px; padding-right: 8px;
+            font-size: var(--editor-font-size); 
+            line-height: var(--editor-line-height);
+            
+            /* Alinhamento exato com o padding do textarea */
+            padding-top: 15px; 
+            padding-right: 8px;
+            
             text-align: right; user-select: none;
             border-right: 1px solid rgba(255,255,255,0.05);
+            flex-shrink: 0; /* Não encolher */
+            min-height: 100%; /* Garante altura mínima */
         }
 
         #code-input {
@@ -116,10 +125,17 @@
             background: transparent;
             color: #d7d7d7;
             font-family: var(--code-font);
-            font-size: 13px; line-height: 24px;
-            padding: 15px 10px; border: none; resize: none; outline: none;
-            white-space: pre; overflow: auto;
-            -webkit-overflow-scrolling: touch;
+            font-size: var(--editor-font-size);
+            line-height: var(--editor-line-height);
+            
+            padding: 15px 10px; 
+            border: none; resize: none; outline: none;
+            white-space: pre; 
+            
+            /* MUDANÇA CRÍTICA: Esconde scroll vertical interno */
+            overflow-y: hidden;
+            overflow-x: auto; /* Mantém scroll horizontal se linha for longa */
+            min-height: 100%;
         }
 
         /* PREVIEW AREA */
@@ -287,16 +303,18 @@
         .mode-menu-item:hover { background: rgba(255,255,255,0.05); }
         .mode-menu-item.active { background: rgba(130, 170, 255, 0.1); color: var(--accent-primary); }
 
-        /* --- SPLIT VIEW (DESKTOP MODE) LOGIC --- */
-        body.desktop-mode #tab-bar { transform: translateY(100%); } /* Esconde abas */
+        /* --- SPLIT VIEW (DESKTOP MODE) --- */
+        body.desktop-mode #tab-bar { transform: translateY(100%); }
         
         body.desktop-mode #editor-area { 
             width: 50%; 
-            right: 50%; /* Garante que pare na metade */
+            right: 50%; 
             bottom: var(--toolbar-h); 
             border-right: 1px solid var(--glass-border);
             display: flex !important;
-            padding-bottom: 0; /* Toolbar tem altura separada */
+            padding-bottom: 0;
+            /* No modo desktop, também mantemos o scroll no pai */
+            overflow-y: auto;
         }
 
         body.desktop-mode #preview-area { 
@@ -305,17 +323,16 @@
             width: 50%; 
             bottom: 0; 
             border-left: 1px solid #000; 
-            z-index: 5; /* Fica abaixo de modais */
+            z-index: 5; 
         }
 
         body.desktop-mode #toolbar { 
             width: 50%; 
             bottom: 0; 
-            right: 50%; /* Toolbar só na esquerda */
+            right: 50%; 
             background-color: var(--bg-secondary); 
         }
         
-        /* Ajuste para que a lista de arquivos não fique gigante no desktop */
         body.desktop-mode .files-header,
         body.desktop-mode .file-list,
         body.desktop-mode .backup-area { 
@@ -446,6 +463,7 @@
         const body = document.body;
         const codeInput = document.getElementById('code-input');
         const lineNums = document.getElementById('line-numbers');
+        const editorArea = document.getElementById('editor-area'); // Novo
         const iframe = document.getElementById('preview-frame');
         const titleEl = document.getElementById('doc-title');
         const overlay = document.getElementById('files-overlay');
@@ -480,16 +498,13 @@
             selectMode(mode);
             closeModeMenu();
         }
-        
         function loadModePreference() {
-            // Força sempre o modo 'mobile' (Editor) ao iniciar
             selectMode('mobile');
         }
 
         function selectMode(mode) {
             isDesktop = mode === 'desktop';
             localStorage.setItem('viewMode', mode); 
-            
             updateModeMenuSelection();
             
             if (currentView === 'code' || currentView === 'view') {
@@ -507,10 +522,9 @@
 
             if (mode === 'files') {
                 saveDraftAutomatic();
-                
                 document.getElementById('tab-files')?.classList.add('active');
                 overlay.style.display = 'flex';
-                document.getElementById('editor-area').style.display = 'none';
+                editorArea.style.display = 'none';
                 document.getElementById('toolbar').style.display = 'none';
                 document.getElementById('preview-area').style.display = 'none';
                 saveBtn.style.display = 'none';
@@ -523,21 +537,21 @@
             } else if (mode === 'code') {
                 document.getElementById('tab-code')?.classList.add('active');
                 overlay.style.display = 'none';
-                document.getElementById('editor-area').style.display = 'flex';
+                editorArea.style.display = 'flex';
                 document.getElementById('toolbar').style.display = 'flex';
-                // No mobile, preview some. No Desktop (Split), ele aparece.
                 document.getElementById('preview-area').style.display = isDesktop ? 'flex' : 'none';
                 saveBtn.style.display = 'block';
                 modeMenuBtn.style.display = 'block';
                 body.classList.toggle('desktop-mode', isDesktop);
                 
+                // Recalcular altura ao abrir editor
+                autoResizeEditor();
                 if(isDesktop) updatePreview();
                 
             } else if (mode === 'view') {
                 document.getElementById('tab-view')?.classList.add('active');
                 overlay.style.display = 'none';
-                // No mobile, editor some. No Desktop (Split), ele aparece.
-                document.getElementById('editor-area').style.display = isDesktop ? 'flex' : 'none';
+                editorArea.style.display = isDesktop ? 'flex' : 'none';
                 document.getElementById('toolbar').style.display = isDesktop ? 'flex' : 'none';
                 document.getElementById('preview-area').style.display = 'flex';
                 saveBtn.style.display = 'block';
@@ -560,26 +574,38 @@
             iframe.srcdoc = content;
         }
 
-        const updateLines = () => {
-            const lines = codeInput.value.split('\n').length;
-            lineNums.innerHTML = Array.from({length: lines}, (_, i) => i + 1).join('<br>');
-            if(isDesktop) {
-                clearTimeout(window.previewTimeout);
-                window.previewTimeout = setTimeout(updatePreview, 500);
-            }
-        };
+        // --- SISTEMA DE AUTO-GROW E LINHAS ---
+        // Esta função substitui a lógica de scroll sync antiga
+        function autoResizeEditor() {
+            // 1. Resetar altura para recalcular encolhimento
+            codeInput.style.height = 'auto'; 
+            
+            // 2. Definir altura baseada no scrollHeight (conteúdo total)
+            // Se o conteúdo for menor que a tela, min-height do CSS segura
+            const newHeight = codeInput.scrollHeight;
+            codeInput.style.height = newHeight + 'px';
 
-        // --- SISTEMA DE AUTO-SAVE ---
-        
+            // 3. Atualizar números de linha
+            const lines = codeInput.value.split('\n').length;
+            // Garante que sempre tem linhas extras visualmente para conforto
+            lineNums.innerHTML = Array.from({length: lines}, (_, i) => i + 1).join('<br>');
+        }
+
         codeInput.addEventListener('input', () => {
-            updateLines();
+            autoResizeEditor();
             clearTimeout(autoSaveTimer);
             autoSaveTimer = setTimeout(() => {
                 saveDraftAutomatic();
             }, 1000);
+            
+            if(isDesktop) {
+                clearTimeout(window.previewTimeout);
+                window.previewTimeout = setTimeout(updatePreview, 500);
+            }
         });
-
-        codeInput.addEventListener('scroll', () => { lineNums.scrollTop = codeInput.scrollTop; });
+        
+        // Listener importante: Recalcular quando a janela muda de tamanho
+        window.addEventListener('resize', autoResizeEditor);
 
         window.addEventListener('visibilitychange', () => {
             if (document.visibilityState === 'hidden') saveDraftAutomatic();
@@ -639,11 +665,10 @@
             
             titleEl.innerText = name;
             titleEl.style.fontStyle = "normal";
-            
             if(currentView === 'files') loadList();
         }
 
-        // --- GERENCIAMENTO DE ARQUIVOS ---
+        // --- ARQUIVOS ---
         
         function createFile() {
             saveDraftAutomatic(); 
@@ -651,25 +676,21 @@
             titleEl.innerText = "Novo Rascunho";
             titleEl.style.fontStyle = "italic";
             currentId = null;
-            updateLines();
+            autoResizeEditor();
             
             selectMode('mobile'); 
             setMode('code');
         }
 
-        function openFiles() {
-            setMode('files');
-        }
+        function openFiles() { setMode('files'); }
 
         function toggleFolder(folderId) {
-            const el = document.getElementById(folderId);
-            el.classList.toggle('open');
+            document.getElementById(folderId).classList.toggle('open');
         }
 
         function loadList() {
             const savedContainer = document.getElementById('saved-list-container');
             const draftsContainer = document.getElementById('drafts-list-container');
-            
             const folderDrafts = document.getElementById('folder-drafts');
             const countDrafts = document.getElementById('count-drafts');
             const countSaved = document.getElementById('count-saved');
@@ -691,11 +712,9 @@
             docs.forEach(doc => {
                 const div = document.createElement('div');
                 div.className = 'file-entry';
-                
                 const isDraft = doc.isDraft === true; 
                 const icon = isDraft ? '📝' : '📄';
                 const colorStyle = isDraft ? 'color:var(--accent-orange)' : 'color:var(--text-main)';
-                
                 div.innerHTML = `
                     <div class="file-info" style="flex:1" onclick="loadFile('${doc.id}')">
                         <div class="file-name" style="${colorStyle}">
@@ -705,36 +724,25 @@
                     </div>
                     <div class="delete-btn" onclick="delFile('${doc.id}')">✕</div>
                 `;
-
-                if (isDraft) {
-                    draftsContainer.appendChild(div);
-                    draftCount++;
-                } else {
-                    savedContainer.appendChild(div);
-                    savedCount++;
-                }
+                if (isDraft) { draftsContainer.appendChild(div); draftCount++; } 
+                else { savedContainer.appendChild(div); savedCount++; }
             });
 
             countDrafts.innerText = `${draftCount}`;
             countSaved.innerText = `${savedCount}`;
-
             folderDrafts.style.display = draftCount > 0 ? 'block' : 'none';
-
-            if(savedCount === 0) {
-                savedContainer.innerHTML = '<div style="padding:20px; text-align:center; color:#555; font-size:13px; font-style:italic">Nenhum projeto salvo.</div>';
-            }
+            if(savedCount === 0) savedContainer.innerHTML = '<div style="padding:20px; text-align:center; color:#555; font-size:13px; font-style:italic">Nenhum projeto salvo.</div>';
         }
 
         function loadFile(id) {
             saveDraftAutomatic(); 
-
             const doc = JSON.parse(localStorage.getItem('phtml_' + id));
             if (doc) {
                 codeInput.value = doc.content;
                 titleEl.innerText = doc.name;
                 titleEl.style.fontStyle = doc.isDraft ? "italic" : "normal";
                 currentId = doc.id;
-                updateLines();
+                autoResizeEditor();
                 setMode('code');
                 if(isDesktop) updatePreview();
             }
@@ -744,9 +752,7 @@
             if(confirm("Apagar permanentemente?")) {
                 localStorage.removeItem('phtml_' + id);
                 if(currentId == id) {
-                    currentId = null;
-                    codeInput.value = "";
-                    titleEl.innerText = "Meus Projetos";
+                    currentId = null; codeInput.value = ""; titleEl.innerText = "Meus Projetos";
                     clearTimeout(autoSaveTimer);
                 }
                 loadList();
@@ -763,7 +769,7 @@
             if(txt.includes('></')) codeInput.selectionStart = start + txt.indexOf('></') + 1;
             if(txt.includes('""')) codeInput.selectionStart = start + txt.indexOf('""') + 1;
             codeInput.focus();
-            updateLines();
+            autoResizeEditor();
             saveDraftAutomatic(); 
         }
 
@@ -778,7 +784,7 @@
         function clearCode() { 
             if(confirm("Limpar editor?")) { 
                 codeInput.value = ""; 
-                updateLines();
+                autoResizeEditor();
                 saveDraftAutomatic(); 
             }
         }
@@ -789,16 +795,10 @@
             let filename = titleEl.innerText || 'index';
             filename = filename.replace(/[^a-z0-9]/gi, '_').toLowerCase();
             if (!filename.endsWith('.html')) filename += '.html';
-
             const blob = new Blob([content], { type: 'text/html' });
             const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = filename;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
+            const a = document.createElement('a'); a.href = url; a.download = filename;
+            document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
         }
 
         function exportData() {
@@ -821,8 +821,7 @@
                     const imported = JSON.parse(e.target.result);
                     if(Array.isArray(imported)) {
                         imported.forEach(d => localStorage.setItem('phtml_'+d.id, JSON.stringify(d)));
-                        alert("Restaurado com sucesso!"); 
-                        loadList();
+                        alert("Restaurado com sucesso!"); loadList();
                     } else alert("Formato inválido.");
                 } catch(e) { alert("Erro ao importar."); }
             };
@@ -832,9 +831,7 @@
 
         // --- INICIALIZAÇÃO ---
         loadModePreference();
-        updateLines();
         setMode('files');
     </script>
 </body>
 </html>
-
