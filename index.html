@@ -8,6 +8,17 @@
     <meta name="theme-color" content="#121214">
     <title>PocketHTML Pro</title>
     <style>
+	/* SECURITY SCREEN */
+#security-screen {
+    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    background-color: #121214; z-index: 99999;
+    display: flex; align-items: center; justify-content: center;
+}
+.lock-container {
+    background: #202024; padding: 40px; border-radius: 20px;
+    text-align: center; border: 1px solid rgba(255,255,255,0.05);
+    box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+}
         :root {
             --bg-app: #121214; 
             --bg-secondary: #202024;
@@ -138,13 +149,19 @@
             min-height: 100%;
         }
 
-        /* PREVIEW AREA */
+        /* PREVIEW AREA CORRIGIDA */
         #preview-area {
-            position: fixed; top: 0; bottom: calc(var(--tab-h) + env(safe-area-inset-bottom));
+            position: fixed;
+            top: 0; 
+            /* Garante que termina EXATAMENTE acima da tab-bar */
+            bottom: calc(var(--tab-h) + env(safe-area-inset-bottom));
             left: 0; right: 0;
             padding-top: calc(var(--header-h) + env(safe-area-inset-top));
-            background-color: var(--bg-app); z-index: 20; display: none;
+            background-color: var(--bg-app); 
+            z-index: 20; 
+            display: none;
             flex-direction: column;
+            overflow: hidden; /* Impede que o container role, forçando o iframe a rolar */
         }
 
         .url-bar {
@@ -153,12 +170,21 @@
             color: var(--accent-green);
             font-size: 12px; font-weight: 600; font-family: var(--code-font);
             display: flex; align-items: center; justify-content: center;
-            margin: 10px 16px; border-radius: 8px; flex-shrink: 0;
-            border: 1px solid var(--glass-border);
-            gap: 8px;
+            margin: 0; /* Remove margem externa para colar nas bordas */
+            padding: 0 16px;
+            border-bottom: 1px solid var(--glass-border);
+            flex-shrink: 0;
         }
 
-        iframe { flex: 1; border: none; background: white; width: 100%; border-radius: 12px 12px 0 0; }
+        iframe { 
+            flex: 1; 
+            border: none; 
+            background: white; 
+            width: 100%; 
+            height: 100%; /* Força altura total do pai */
+            display: block; /* Remove gaps fantasmas */
+            border-radius: 0; /* Remove arredondamento que pode cortar scrollbars */
+        }
 
         /* TOOLBAR */
         #toolbar {
@@ -343,6 +369,26 @@
     </style>
 </head>
 <body>
+    <div id="security-screen">
+    <div class="lock-container">
+        <div style="font-size: 50px; margin-bottom: 20px;">🔐</div>
+        <h2 style="color:#fff; margin:0 0 10px 0;">PocketHTML Secure</h2>
+        <p style="color:#aaa; font-size:12px; margin-bottom:15px;">Criptografia AES-256-GCM</p>
+
+<div style="background:rgba(255, 85, 85, 0.15); border:1px solid rgba(255, 85, 85, 0.3); color:#ff8080; padding:10px; border-radius:8px; font-size:11px; line-height:1.4; margin-bottom:20px; max-width:220px; margin-left:auto; margin-right:auto;">
+    ⚠️ <b>Atenção:</b> Não existe recuperação de senha.<br>
+    Se a esquecer, seus dados serão perdidos para sempre.
+</div>
+        
+        <input type="password" id="auth-password" placeholder="Digite sua senha/PIN" autocomplete="off" 
+               style="background:#202024; border:1px solid #333; color:#fff; padding:12px; border-radius:8px; width:200px; text-align:center; font-size:16px; outline:none; margin-bottom:15px;">
+        
+        <button onclick="attemptLogin()" style="background:#82aaff; color:#121214; border:none; padding:12px 30px; border-radius:8px; font-weight:bold; font-size:16px; cursor:pointer;">
+            Entrar
+        </button>
+        <div id="login-msg" style="color:#ff5555; margin-top:15px; font-size:12px; height:15px;"></div>
+    </div>
+</div>
     <header id="main-header">
         <button class="ios-btn" onclick="openFiles()">
             <span style="font-size:22px;">📂</span>
@@ -364,6 +410,15 @@
         <div class="mode-menu-item" id="menu-desktop" onclick="selectModeFromMenu('desktop')">
             <span class="mode-menu-icon">🖥️</span> <span>Split View</span>
         </div>
+        
+        <div style="padding: 10px 16px; display:flex; justify-content:space-between; align-items:center; border-top:1px solid rgba(255,255,255,0.1); margin-top:5px;">
+            <span style="font-size:12px; color:#aaa">Fonte:</span>
+            <div style="display:flex; gap:10px;">
+                <button onclick="changeFontSize(-1)" style="background:#333; width:30px; height:30px; border-radius:50%; color:#fff;">A-</button>
+                <button onclick="changeFontSize(1)" style="background:#333; width:30px; height:30px; border-radius:50%; color:#fff;">A+</button>
+            </div>
+        </div>
+
         <div style="height:1px; background:rgba(255,255,255,0.1); margin:6px 0"></div>
         <div class="mode-menu-item" onclick="downloadCurrentFile()">
             <span class="mode-menu-icon">⬇</span> <span>Baixar .html</span>
@@ -379,7 +434,7 @@
         <div class="url-bar">
             <span>🔒</span> Local Preview <span style="opacity:0.5; font-weight:400; margin-left:5px">/index.html</span>
         </div>
-        <iframe id="preview-frame"></iframe>
+        <iframe id="preview-frame" sandbox="allow-scripts allow-same-origin allow-modals"></iframe>
     </div>
 
     <div id="toolbar">
@@ -454,6 +509,23 @@
         <div class="backup-area">
             <button class="ios-full-btn btn-green" onclick="exportData()">⬇ Backup JSON</button>
             <button class="ios-full-btn btn-gray" onclick="importTrigger()">⬆ Restaurar Backup</button>
+	<div class="backup-area" style="border-top: none; padding-top: 0;">
+            <div style="height:1px; background:var(--glass-border); margin-bottom: 20px;"></div>
+            
+            <button class="ios-full-btn" style="background:#323238; color:#fff" onclick="changePassword()">
+                🔑 Alterar Senha
+            </button>
+            
+            <button class="ios-full-btn" style="background:#323238; color:#ff8080" onclick="logout()">
+                🔒 Sair (Logout)
+            </button>
+            
+            <button class="ios-full-btn" style="background:rgba(255, 85, 85, 0.15); color:#ff5555; margin-top:10px" onclick="nukeApp()">
+                ⚠️ Apagar Tudo (Reset)
+            </button>
+            
+            <div style="text-align:center; color:#666; font-size:10px; margin-top:10px">
+                PocketHTML Pro v1.0                
         </div>
     </div>
 
@@ -461,251 +533,550 @@
 
     <script>
         const body = document.body;
-        const codeInput = document.getElementById('code-input');
-        const lineNums = document.getElementById('line-numbers');
-        const editorArea = document.getElementById('editor-area'); // Novo
-        const iframe = document.getElementById('preview-frame');
-        const titleEl = document.getElementById('doc-title');
-        const overlay = document.getElementById('files-overlay');
-        const modeMenu = document.getElementById('mode-menu');
-        const menuOverlay = document.getElementById('menu-overlay');
-        const modeMenuBtn = document.getElementById('mode-menu-btn');
-        const saveBtn = document.getElementById('btn-save');
+    const codeInput = document.getElementById('code-input');
+    const lineNums = document.getElementById('line-numbers');
+    const editorArea = document.getElementById('editor-area');
+    const iframe = document.getElementById('preview-frame');
+    const titleEl = document.getElementById('doc-title');
+    const overlay = document.getElementById('files-overlay');
+    const modeMenu = document.getElementById('mode-menu');
+    const menuOverlay = document.getElementById('menu-overlay');
+    const modeMenuBtn = document.getElementById('mode-menu-btn');
+    const saveBtn = document.getElementById('btn-save');
+    
+    let currentId = null;
+    let isDesktop = false;
+    let currentView = 'files';
+    let autoSaveTimer = null;
+    let masterKey = null; // A chave mestra descriptografada fica na RAM
+
+    // --- BANCO DE DADOS (INDEXEDDB) ---
+    // Substitui o localStorage para permitir armazenamento ilimitado
+    const dbName = "PocketHTML_DB";
+    const storeName = "files";
+
+    const DB = {
+        connect: () => new Promise((resolve, reject) => {
+            const req = indexedDB.open(dbName, 1);
+            req.onupgradeneeded = e => {
+                const db = e.target.result;
+                if (!db.objectStoreNames.contains(storeName)) {
+                    db.createObjectStore(storeName, { keyPath: "id" });
+                }
+            };
+            req.onsuccess = () => resolve(req.result);
+            req.onerror = () => reject(req.error);
+        }),
+	clear: async () => {
+            const db = await DB.connect();
+            return new Promise((resolve, reject) => {
+                const tx = db.transaction(storeName, "readwrite");
+                const store = tx.objectStore(storeName);
+                const req = store.clear(); // Limpa tudo
+                req.onsuccess = () => resolve(true);
+                req.onerror = () => reject(req.error);
+            });
+        },
+        save: async (doc) => {
+            const db = await DB.connect();
+            return new Promise((resolve, reject) => {
+                const tx = db.transaction(storeName, "readwrite");
+                const store = tx.objectStore(storeName);
+                const req = store.put(doc);
+                req.onsuccess = () => resolve(true);
+                req.onerror = () => reject(req.error);
+            });
+        },
+        getAll: async () => {
+            const db = await DB.connect();
+            return new Promise((resolve, reject) => {
+                const tx = db.transaction(storeName, "readonly");
+                const store = tx.objectStore(storeName);
+                const req = store.getAll();
+                req.onsuccess = () => resolve(req.result);
+                req.onerror = () => reject(req.error);
+            });
+        },
+        get: async (id) => {
+            const db = await DB.connect();
+            return new Promise((resolve, reject) => {
+                const tx = db.transaction(storeName, "readonly");
+                const store = tx.objectStore(storeName);
+                const req = store.get(id);
+                req.onsuccess = () => resolve(req.result);
+                req.onerror = () => reject(req.error);
+            });
+        },
+        delete: async (id) => {
+            const db = await DB.connect();
+            return new Promise((resolve, reject) => {
+                const tx = db.transaction(storeName, "readwrite");
+                const store = tx.objectStore(storeName);
+                const req = store.delete(id);
+                req.onsuccess = () => resolve(true);
+                req.onerror = () => reject(req.error);
+            });
+        }
+    };
+
+    // --- CRIPTOGRAFIA OTIMIZADA ---
+    const CryptoEngine = {
+        // Deriva a chave apenas UMA VEZ usando o Salt Global
+        deriveMasterKey: async (password, saltBuffer) => {
+            const enc = new TextEncoder();
+            const keyMaterial = await window.crypto.subtle.importKey(
+                "raw", enc.encode(password), { name: "PBKDF2" }, false, ["deriveKey"]
+            );
+            return window.crypto.subtle.deriveKey(
+                { name: "PBKDF2", salt: saltBuffer, iterations: 100000, hash: "SHA-256" },
+                keyMaterial, { name: "AES-GCM", length: 256 }, false, ["encrypt", "decrypt"]
+            );
+        },
+
+        encrypt: async (text) => {
+            if (!masterKey) throw new Error("Bloqueado");
+            const iv = window.crypto.getRandomValues(new Uint8Array(12));
+            const enc = new TextEncoder();
+            const encrypted = await window.crypto.subtle.encrypt(
+                { name: "AES-GCM", iv: iv }, masterKey, enc.encode(text)
+            );
+            // Salva IV + Dados (A chave já está na memória)
+            return JSON.stringify({
+                i: Array.from(iv),
+                d: Array.from(new Uint8Array(encrypted))
+            });
+        },
+
+        decrypt: async (bundleJson) => {
+            if (!masterKey) return null;
+            try {
+                const bundle = JSON.parse(bundleJson);
+                const iv = new Uint8Array(bundle.i);
+                const data = new Uint8Array(bundle.d);
+                const decrypted = await window.crypto.subtle.decrypt(
+                    { name: "AES-GCM", iv: iv }, masterKey, data
+                );
+                return new TextDecoder().decode(decrypted);
+            } catch (e) { return null; }
+        }
+    };
+
+    // --- LOGIN ---
+    async function attemptLogin() {
+        const pwd = document.getElementById('auth-password').value;
+        if(pwd.length < 1) return;
         
-        let currentId = null;
-        let isDesktop = false;
-        let currentView = 'files';
-        let autoSaveTimer = null;
-
-        // --- SISTEMA DE MODO E MENU ---
-        function toggleModeMenu() {
-            if (modeMenu.classList.contains('show')) closeModeMenu();
-            else {
-                modeMenu.classList.add('show');
-                menuOverlay.classList.add('show');
-                updateModeMenuSelection();
-            }
-        }
-        function closeModeMenu() {
-            modeMenu.classList.remove('show');
-            menuOverlay.classList.remove('show');
-        }
-        function updateModeMenuSelection() {
-            document.getElementById('menu-mobile').classList.toggle('active', !isDesktop);
-            document.getElementById('menu-desktop').classList.toggle('active', isDesktop);
-        }
-        function selectModeFromMenu(mode) {
-            selectMode(mode);
-            closeModeMenu();
-        }
-        function loadModePreference() {
-            selectMode('mobile');
-        }
-
-        function selectMode(mode) {
-            isDesktop = mode === 'desktop';
-            localStorage.setItem('viewMode', mode); 
-            updateModeMenuSelection();
+        // Usamos localStorage apenas para o "Sal" global de autenticação
+        let authData = localStorage.getItem('phtml_auth_v2'); 
+        
+        if (!authData) {
+            // PRIMEIRO ACESSO (Setup)
+            const salt = window.crypto.getRandomValues(new Uint8Array(16));
+            masterKey = await CryptoEngine.deriveMasterKey(pwd, salt);
             
-            if (currentView === 'code' || currentView === 'view') {
-                body.classList.toggle('desktop-mode', isDesktop);
-                setMode(currentView); 
-            }
-        }
+            // Cria um token de verificação criptografado
+            const iv = window.crypto.getRandomValues(new Uint8Array(12));
+            const enc = new TextEncoder();
+            const encryptedCheck = await window.crypto.subtle.encrypt(
+                { name: "AES-GCM", iv: iv }, masterKey, enc.encode("VALID")
+            );
 
-        // --- NAVEGAÇÃO ---
-        function setMode(mode) {
-            currentView = mode;
-            document.getElementById('tab-files')?.classList.remove('active');
-            document.getElementById('tab-code')?.classList.remove('active');
-            document.getElementById('tab-view')?.classList.remove('active');
-
-            if (mode === 'files') {
-                saveDraftAutomatic();
-                document.getElementById('tab-files')?.classList.add('active');
-                overlay.style.display = 'flex';
-                editorArea.style.display = 'none';
-                document.getElementById('toolbar').style.display = 'none';
-                document.getElementById('preview-area').style.display = 'none';
-                saveBtn.style.display = 'none';
-                modeMenuBtn.style.display = 'none';
-                titleEl.innerText = 'Meus Projetos';
-                titleEl.style.fontStyle = 'normal';
-                body.classList.remove('desktop-mode');
-                loadList();
-                
-            } else if (mode === 'code') {
-                document.getElementById('tab-code')?.classList.add('active');
-                overlay.style.display = 'none';
-                editorArea.style.display = 'flex';
-                document.getElementById('toolbar').style.display = 'flex';
-                document.getElementById('preview-area').style.display = isDesktop ? 'flex' : 'none';
-                saveBtn.style.display = 'block';
-                modeMenuBtn.style.display = 'block';
-                body.classList.toggle('desktop-mode', isDesktop);
-                
-                // Recalcular altura ao abrir editor
-                autoResizeEditor();
-                if(isDesktop) updatePreview();
-                
-            } else if (mode === 'view') {
-                document.getElementById('tab-view')?.classList.add('active');
-                overlay.style.display = 'none';
-                editorArea.style.display = isDesktop ? 'flex' : 'none';
-                document.getElementById('toolbar').style.display = isDesktop ? 'flex' : 'none';
-                document.getElementById('preview-area').style.display = 'flex';
-                saveBtn.style.display = 'block';
-                modeMenuBtn.style.display = 'block';
-                body.classList.toggle('desktop-mode', isDesktop);
-                updatePreview();
-            }
-        }
-
-        // --- EDITOR E PREVIEW ---
-        function updatePreview() {
-            let content = codeInput.value.trim();
-            if(!content.includes('<meta name="viewport"')) {
-                const vp = '<meta name="viewport" content="width=device-width, initial-scale=1.0">';
-                if(content.includes('<head>')) content = content.replace('<head>', '<head>' + vp);
-                else if(content.includes('<html>')) content = content.replace('<html>', '<html><head>' + vp + '</head>');
-                else content = vp + content;
-            }
-            if(!content) content = "<div style='text-align:center; padding:50px; color:#8e8e93; font-family:-apple-system;'>Preview</div>";
-            iframe.srcdoc = content;
-        }
-
-        // --- SISTEMA DE AUTO-GROW E LINHAS ---
-        // Esta função substitui a lógica de scroll sync antiga
-        function autoResizeEditor() {
-            // 1. Resetar altura para recalcular encolhimento
-            codeInput.style.height = 'auto'; 
+            // Salva o Salt e o Check
+            const bundle = {
+                s: Array.from(salt), // Salt Global
+                c: { i: Array.from(iv), d: Array.from(new Uint8Array(encryptedCheck)) } // Check
+            };
+            localStorage.setItem('phtml_auth_v2', JSON.stringify(bundle));
             
-            // 2. Definir altura baseada no scrollHeight (conteúdo total)
-            // Se o conteúdo for menor que a tela, min-height do CSS segura
-            const newHeight = codeInput.scrollHeight;
-            codeInput.style.height = newHeight + 'px';
+            // Migração silenciosa: Tenta limpar o storage antigo para evitar confusão
+            // (Opcional: implementar migração de dados se necessário)
+            
+            unlockApp();
+        } else {
+            // LOGIN NORMAL
+            try {
+                const bundle = JSON.parse(authData);
+                const salt = new Uint8Array(bundle.s);
+                // Gera a chave baseada na senha digitada e no salt salvo
+                const tempKey = await CryptoEngine.deriveMasterKey(pwd, salt);
+                
+                // Tenta decriptar o Check
+                const checkIv = new Uint8Array(bundle.c.i);
+                const checkData = new Uint8Array(bundle.c.d);
+                
+                const decrypted = await window.crypto.subtle.decrypt(
+                    { name: "AES-GCM", iv: checkIv }, tempKey, checkData
+                );
 
-            // 3. Atualizar números de linha
-            const lines = codeInput.value.split('\n').length;
-            // Garante que sempre tem linhas extras visualmente para conforto
-            lineNums.innerHTML = Array.from({length: lines}, (_, i) => i + 1).join('<br>');
+                if (new TextDecoder().decode(decrypted) === "VALID") {
+                    masterKey = tempKey; // Senha correta, guarda a chave na RAM
+                    unlockApp();
+                }
+            } catch(e) {
+                document.getElementById('login-msg').innerText = "Senha incorreta.";
+                document.getElementById('auth-password').value = "";
+            }
         }
+    }
 
-        codeInput.addEventListener('input', () => {
-            autoResizeEditor();
-            clearTimeout(autoSaveTimer);
-            autoSaveTimer = setTimeout(() => {
-                saveDraftAutomatic();
+    function unlockApp() {
+        document.getElementById('security-screen').style.display = 'none';
+        loadList();
+    }
+
+    // --- LÓGICA DO EDITOR ---
+    // PERMITIR USO DO TAB PARA INDENTAR
+    codeInput.addEventListener('keydown', function(e) {
+        if (e.key === 'Tab') {
+            e.preventDefault();
+            const start = this.selectionStart;
+            const end = this.selectionEnd;
+            // Insere 2 espaços
+            document.execCommand('insertText', false, '  '); 
+            // (O execCommand preserva o histórico de desfazer/refazer do navegador)
+        }
+        
+        // ATALHO CTRL+S PARA SALVAR
+        if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+            e.preventDefault();
+            saveDoc();
+            // Efeito visual de feedback
+            const oldColor = titleEl.style.color;
+            titleEl.style.color = 'var(--accent-green)';
+            titleEl.innerText = "Salvo!";
+            setTimeout(() => {
+                titleEl.style.color = oldColor;
+                // Restaura o nome original se não for rascunho
+                if(currentId) loadFile(currentId); 
             }, 1000);
-            
-            if(isDesktop) {
-                clearTimeout(window.previewTimeout);
-                window.previewTimeout = setTimeout(updatePreview, 500);
-            }
-        });
+        }
+    });
+    function changeFontSize(amount) {
+        const root = document.documentElement;
+        const current = parseInt(getComputedStyle(root).getPropertyValue('--editor-font-size'));
+        const newSize = Math.max(10, Math.min(24, current + amount)); // Mínimo 10px, Máximo 24px
+        root.style.setProperty('--editor-font-size', newSize + 'px');
+        autoResizeEditor(); // Recalcula altura das linhas
+    }
+    function toggleModeMenu() {
+        if (modeMenu.classList.contains('show')) closeModeMenu();
+        else {
+            modeMenu.classList.add('show');
+            menuOverlay.classList.add('show');
+            updateModeMenuSelection();
+        }
+    }
+    function closeModeMenu() {
+        modeMenu.classList.remove('show');
+        menuOverlay.classList.remove('show');
+    }
+    function updateModeMenuSelection() {
+        document.getElementById('menu-mobile').classList.toggle('active', !isDesktop);
+        document.getElementById('menu-desktop').classList.toggle('active', isDesktop);
+    }
+    function selectModeFromMenu(mode) {
+        selectMode(mode);
+        closeModeMenu();
+    }
+    function logout() {
+        masterKey = null; // Apaga a chave da memória RAM
+        currentId = null;
+        codeInput.value = "";
+        titleEl.innerText = "Meus Projetos";
         
-        // Listener importante: Recalcular quando a janela muda de tamanho
-        window.addEventListener('resize', autoResizeEditor);
+        // Esconde a interface e mostra o bloqueio
+        overlay.style.display = 'none';
+        document.getElementById('security-screen').style.display = 'flex';
+        document.getElementById('auth-password').value = "";
+        document.getElementById('login-msg').innerText = "";
+    }
+    async function nukeApp() {
+        if(!confirm("⚠️ PERIGO: Isso apagará TODOS os seus projetos e a sua senha.")) return;
+        if(!confirm("Tem certeza absoluta? Essa ação é irreversível.")) return;
 
-        window.addEventListener('visibilitychange', () => {
-            if (document.visibilityState === 'hidden') saveDraftAutomatic();
-        });
+        try {
+            await DB.clear(); // Limpa IndexedDB
+            localStorage.clear(); // Limpa Auth e configs
+            alert("App resetado com sucesso.");
+            location.reload(); // Recarrega a página para criar nova senha
+        } catch(e) {
+            alert("Erro ao limpar dados: " + e);
+        }
+    }
+    async function changePassword() {
+        const newPass = prompt("Digite a NOVA senha:");
+        if(!newPass || newPass.trim() === "") return;
+        
+        const confirmPass = prompt("Confirme a NOVA senha:");
+        if(newPass !== confirmPass) return alert("As senhas não coincidem.");
 
-        function saveDraftAutomatic() {
-            if (!codeInput.value.trim() && !currentId) return;
-            if (!codeInput.value.trim() && currentId) return;
+        const oldBtnText = event.target.innerText;
+        event.target.innerText = "⏳ Processando...";
 
-            if (!currentId) currentId = Date.now().toString();
-
-            let existingDoc = null;
-            const existingData = localStorage.getItem('phtml_' + currentId);
-            if (existingData) existingDoc = JSON.parse(existingData);
-
-            let isDraft = true;
-            let name = "Rascunho Sem Título";
-
-            if (existingDoc && existingDoc.isDraft === false) {
-                isDraft = false; 
-                name = existingDoc.name;
-            } else {
-                const previewText = codeInput.value.trim().substring(0, 20).replace(/\n/g, " ");
-                name = previewText ? `Rascunho: ${previewText}...` : "Rascunho Vazio";
+        try {
+            // 1. Baixa todos os arquivos e descriptografa com a chave VELHA
+            const allRecords = await DB.getAll();
+            const memoryDocs = [];
+            for (const record of allRecords) {
+                const json = await CryptoEngine.decrypt(record.data);
+                if(json) memoryDocs.push(JSON.parse(json));
             }
 
-            const doc = { 
-                id: currentId, 
-                name: name, 
-                content: codeInput.value, 
-                date: new Date().toLocaleDateString('pt-BR'),
-                isDraft: isDraft 
-            };
+            // 2. Gera nova chave mestra com a NOVA senha
+            const newSalt = window.crypto.getRandomValues(new Uint8Array(16));
+            const newKey = await CryptoEngine.deriveMasterKey(newPass, newSalt);
 
-            localStorage.setItem('phtml_' + currentId, JSON.stringify(doc));
-            if (isDraft) titleEl.style.fontStyle = "italic";
+            // 3. Atualiza a masterKey na RAM para a NOVA
+            masterKey = newKey; 
+
+            // 4. Criptografa tudo de novo com a chave NOVA
+            await DB.clear(); // Limpa o banco antigo
+            for (const doc of memoryDocs) {
+                const encrypted = await CryptoEngine.encrypt(JSON.stringify(doc));
+                await DB.save({ id: doc.id, data: encrypted });
+            }
+
+            // 5. Cria novo Token de Autenticação (Check)
+            const iv = window.crypto.getRandomValues(new Uint8Array(12));
+            const enc = new TextEncoder();
+            const encryptedCheck = await window.crypto.subtle.encrypt(
+                { name: "AES-GCM", iv: iv }, masterKey, enc.encode("VALID")
+            );
+
+            const bundle = {
+                s: Array.from(newSalt),
+                c: { i: Array.from(iv), d: Array.from(new Uint8Array(encryptedCheck)) }
+            };
+            localStorage.setItem('phtml_auth_v2', JSON.stringify(bundle));
+
+            alert("Senha alterada e todos os arquivos re-criptografados com sucesso!");
+        } catch(e) {
+            console.error(e);
+            alert("Erro crítico ao alterar senha. Faça backup antes de tentar novamente.");
+        } finally {
+            event.target.innerText = "🔑 Alterar Senha";
+        }
+    }
+    function loadModePreference() { selectMode('mobile'); }
+
+    function selectMode(mode) {
+        isDesktop = mode === 'desktop';
+        localStorage.setItem('viewMode', mode); 
+        updateModeMenuSelection();
+        if (currentView === 'code' || currentView === 'view') {
+            body.classList.toggle('desktop-mode', isDesktop);
+            setMode(currentView); 
+        }
+    }
+
+    function setMode(mode) {
+        currentView = mode;
+        document.getElementById('tab-files')?.classList.remove('active');
+        document.getElementById('tab-code')?.classList.remove('active');
+        document.getElementById('tab-view')?.classList.remove('active');
+
+        if (mode === 'files') {
+            saveDraftAutomatic();
+            document.getElementById('tab-files')?.classList.add('active');
+            overlay.style.display = 'flex';
+            editorArea.style.display = 'none';
+            document.getElementById('toolbar').style.display = 'none';
+            document.getElementById('preview-area').style.display = 'none';
+            saveBtn.style.display = 'none';
+            modeMenuBtn.style.display = 'none';
+            titleEl.innerText = 'Meus Projetos';
+            titleEl.style.fontStyle = 'normal';
+            body.classList.remove('desktop-mode');
+            loadList();
+        } else if (mode === 'code') {
+            document.getElementById('tab-code')?.classList.add('active');
+            overlay.style.display = 'none';
+            editorArea.style.display = 'flex';
+            document.getElementById('toolbar').style.display = 'flex';
+            document.getElementById('preview-area').style.display = isDesktop ? 'flex' : 'none';
+            saveBtn.style.display = 'block';
+            modeMenuBtn.style.display = 'block';
+            body.classList.toggle('desktop-mode', isDesktop);
+            autoResizeEditor();
+            if(isDesktop) updatePreview();
+        } else if (mode === 'view') {
+            document.getElementById('tab-view')?.classList.add('active');
+            overlay.style.display = 'none';
+            editorArea.style.display = isDesktop ? 'flex' : 'none';
+            document.getElementById('toolbar').style.display = isDesktop ? 'flex' : 'none';
+            document.getElementById('preview-area').style.display = 'flex';
+            saveBtn.style.display = 'block';
+            modeMenuBtn.style.display = 'block';
+            body.classList.toggle('desktop-mode', isDesktop);
+            updatePreview();
+        }
+    }
+
+    function updatePreview() {
+        let content = codeInput.value; // Removido .trim() para evitar bugs de digitação
+        
+        // 1. Garante a viewport correta para Mobile
+        if(!content.includes('<meta name="viewport"')) {
+            const vp = '<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">';
+            if(content.includes('<head>')) content = content.replace('<head>', '<head>' + vp);
+            else if(content.includes('<html>')) content = content.replace('<html>', '<html><head>' + vp + '</head>');
+            else content = vp + content;
         }
 
-        function saveDoc() {
-            let defaultName = titleEl.innerText;
-            if(defaultName.includes("Rascunho:")) defaultName = "index.html";
+        // 2. Injeta CSS de Reset E Capturador de Erros
+        const systemCode = `
+            <style>
+                body { margin: 0; padding: 0; min-height: 100vh; overflow-x: hidden; }
+                * { box-sizing: border-box; }
+                /* Estilo do aviso de erro */
+                #error-toast { position: fixed; top: 10px; left: 10px; right: 10px; background: #ff4444; color: white; padding: 10px; border-radius: 8px; font-family: sans-serif; font-size: 12px; z-index: 9999; display: none; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
+            </style>
+            <div id="error-toast"></div>
+            <script>
+                window.onerror = function(msg, url, line) {
+                    const el = document.getElementById('error-toast');
+                    el.innerHTML = "<b>Erro JS (Linha " + line + "):</b> " + msg;
+                    el.style.display = 'block';
+                    setTimeout(() => el.style.display = 'none', 5000);
+                };
+            <\/script>
+        `;
 
-            let name = prompt("Nome do projeto:", defaultName);
-            if (!name) return;
+        // 4. Renderiza
+        iframe.srcdoc = content;
+    }
 
-            if (!currentId) currentId = Date.now().toString();
-            
-            const doc = { 
-                id: currentId, 
-                name: name, 
-                content: codeInput.value, 
-                date: new Date().toLocaleDateString('pt-BR'),
-                isDraft: false 
-            };
+    function autoResizeEditor() {
+        codeInput.style.height = 'auto';
+        codeInput.style.height = codeInput.scrollHeight + 'px';
+        const lines = codeInput.value.split('\n').length;
+        lineNums.innerHTML = Array.from({length: lines}, (_, i) => i + 1).join('<br>');
+    }
 
-            localStorage.setItem('phtml_' + currentId, JSON.stringify(doc));
+    // Debounce melhorado para não travar a digitação com criptografia
+    codeInput.addEventListener('input', () => {
+        autoResizeEditor();
+        clearTimeout(autoSaveTimer);
+        autoSaveTimer = setTimeout(() => {
+            saveDraftAutomatic();
+        }, 1500); // Aumentado para 1.5s para economizar bateria
+        
+        if(isDesktop) {
+            clearTimeout(window.previewTimeout);
+            window.previewTimeout = setTimeout(updatePreview, 500);
+        }
+    });
+    window.addEventListener('resize', autoResizeEditor);
+    window.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'hidden') saveDraftAutomatic();
+    });
+
+    async function saveDraftAutomatic() {
+        if (!codeInput.value.trim() && !currentId) return;
+        // Não salva se não houve mudança (opcional, mas bom para performance)
+        
+        if (!currentId) currentId = Date.now().toString();
+
+        // Verifica se já existe para manter nome e status
+        let isDraft = true;
+        let name = "Rascunho Sem Título";
+        
+        // Tenta ler o doc atual da memória ou DB seria ideal, mas simplificamos:
+        const previewText = codeInput.value.trim().substring(0, 20).replace(/\n/g, " ");
+        
+        // Se já está carregado e tem título, mantemos. 
+        // Lógica simplificada: Se o título no header não é "Novo Rascunho" nem "Meus Projetos"
+        if(titleEl.innerText !== "Novo Rascunho" && titleEl.innerText !== "Meus Projetos") {
+            name = titleEl.innerText;
+            if(titleEl.style.fontStyle !== "italic") isDraft = false;
+        } else {
+            name = previewText ? `Rascunho: ${previewText}...` : "Rascunho Vazio";
+        }
+
+        const docPlain = { 
+            id: currentId, 
+            name: name, 
+            content: codeInput.value, 
+            date: new Date().toLocaleDateString('pt-BR'),
+            isDraft: isDraft 
+        };
+
+        try {
+            const encryptedContent = await CryptoEngine.encrypt(JSON.stringify(docPlain));
+            // Salva no IndexedDB
+            await DB.save({ id: currentId, data: encryptedContent });
+            if (isDraft) titleEl.style.fontStyle = "italic";
+        } catch(e) {
+            console.error("Erro ao salvar automático", e);
+        }
+    }
+
+    async function saveDoc() {
+        let defaultName = titleEl.innerText;
+        if(defaultName.includes("Rascunho:") || defaultName === "Novo Rascunho") defaultName = "index.html";
+
+        let name = prompt("Nome do projeto:", defaultName);
+        if (!name) return;
+
+        if (!currentId) currentId = Date.now().toString();
+        
+        const docPlain = { 
+            id: currentId, 
+            name: name, 
+            content: codeInput.value, 
+            date: new Date().toLocaleDateString('pt-BR'),
+            isDraft: false 
+        };
+
+        try {
+            const encryptedContent = await CryptoEngine.encrypt(JSON.stringify(docPlain));
+            await DB.save({ id: currentId, data: encryptedContent });
             
             titleEl.innerText = name;
             titleEl.style.fontStyle = "normal";
             if(currentView === 'files') loadList();
+        } catch(e) {
+            alert("Erro ao salvar! Espaço insuficiente ou erro no DB.");
         }
+    }
 
-        // --- ARQUIVOS ---
+    function createFile() {
+        saveDraftAutomatic();
+        codeInput.value = "";
+        titleEl.innerText = "Novo Rascunho";
+        titleEl.style.fontStyle = "italic";
+        currentId = null;
+        autoResizeEditor();
+        selectMode('mobile'); 
+        setMode('code');
+    }
+
+    function openFiles() { setMode('files'); }
+    function toggleFolder(folderId) {
+        document.getElementById(folderId).classList.toggle('open');
+    }
+
+    async function loadList() {
+        const savedContainer = document.getElementById('saved-list-container');
+        const draftsContainer = document.getElementById('drafts-list-container');
+        savedContainer.innerHTML = '<div style="padding:20px; text-align:center">Carregando...</div>';
+        draftsContainer.innerHTML = '';
         
-        function createFile() {
-            saveDraftAutomatic(); 
-            codeInput.value = "";
-            titleEl.innerText = "Novo Rascunho";
-            titleEl.style.fontStyle = "italic";
-            currentId = null;
-            autoResizeEditor();
-            
-            selectMode('mobile'); 
-            setMode('code');
-        }
+        try {
+            // Pega tudo do IndexedDB
+            const allRecords = await DB.getAll();
+            const docs = [];
 
-        function openFiles() { setMode('files'); }
-
-        function toggleFolder(folderId) {
-            document.getElementById(folderId).classList.toggle('open');
-        }
-
-        function loadList() {
-            const savedContainer = document.getElementById('saved-list-container');
-            const draftsContainer = document.getElementById('drafts-list-container');
-            const folderDrafts = document.getElementById('folder-drafts');
-            const countDrafts = document.getElementById('count-drafts');
-            const countSaved = document.getElementById('count-saved');
-            
-            savedContainer.innerHTML = '';
-            draftsContainer.innerHTML = '';
-            
-            let docs = [];
-            for (let i = 0; i < localStorage.length; i++) {
-                if (localStorage.key(i).startsWith('phtml_')) {
-                    try { docs.push(JSON.parse(localStorage.getItem(localStorage.key(i)))); } catch(e){}
-                }
+            for (const record of allRecords) {
+                try {
+                    const decryptedJson = await CryptoEngine.decrypt(record.data);
+                    if(decryptedJson) docs.push(JSON.parse(decryptedJson));
+                } catch(e) { console.error("Falha ao decriptar um arquivo", e); }
             }
-            docs.sort((a,b) => b.id - a.id);
 
+            savedContainer.innerHTML = ''; // Limpa loading
+            docs.sort((a,b) => b.id - a.id);
+            
             let draftCount = 0;
             let savedCount = 0;
 
@@ -728,16 +1099,27 @@
                 else { savedContainer.appendChild(div); savedCount++; }
             });
 
-            countDrafts.innerText = `${draftCount}`;
-            countSaved.innerText = `${savedCount}`;
-            folderDrafts.style.display = draftCount > 0 ? 'block' : 'none';
+            document.getElementById('count-drafts').innerText = `${draftCount}`;
+            document.getElementById('count-saved').innerText = `${savedCount}`;
+            document.getElementById('folder-drafts').style.display = draftCount > 0 ? 'block' : 'none';
             if(savedCount === 0) savedContainer.innerHTML = '<div style="padding:20px; text-align:center; color:#555; font-size:13px; font-style:italic">Nenhum projeto salvo.</div>';
+        
+        } catch(e) {
+            savedContainer.innerHTML = "Erro ao carregar lista.";
         }
+    }
 
-        function loadFile(id) {
-            saveDraftAutomatic(); 
-            const doc = JSON.parse(localStorage.getItem('phtml_' + id));
-            if (doc) {
+    async function loadFile(id) {
+        // Salva o atual antes de trocar
+        await saveDraftAutomatic();
+        
+        try {
+            const record = await DB.get(id);
+            if(!record) return;
+
+            const decrypted = await CryptoEngine.decrypt(record.data);
+            if (decrypted) {
+                const doc = JSON.parse(decrypted);
                 codeInput.value = doc.content;
                 titleEl.innerText = doc.name;
                 titleEl.style.fontStyle = doc.isDraft ? "italic" : "normal";
@@ -746,92 +1128,114 @@
                 setMode('code');
                 if(isDesktop) updatePreview();
             }
-        }
-        
-        function delFile(id) {
-            if(confirm("Apagar permanentemente?")) {
-                localStorage.removeItem('phtml_' + id);
-                if(currentId == id) {
-                    currentId = null; codeInput.value = ""; titleEl.innerText = "Meus Projetos";
-                    clearTimeout(autoSaveTimer);
-                }
-                loadList();
+        } catch(e) { alert("Erro ao abrir arquivo."); }
+    }
+    
+    async function delFile(id) {
+        if(confirm("Apagar permanentemente?")) {
+            await DB.delete(id);
+            if(currentId == id) {
+                currentId = null;
+                codeInput.value = ""; titleEl.innerText = "Meus Projetos";
+                clearTimeout(autoSaveTimer);
             }
+            loadList();
         }
+    }
 
-        // --- UTILITÁRIOS ---
-        function ins(txt) {
-            const start = codeInput.selectionStart;
-            const end = codeInput.selectionEnd;
-            const val = codeInput.value;
-            codeInput.value = val.substring(0, start) + txt + val.substring(end);
-            codeInput.selectionStart = codeInput.selectionEnd = start + txt.length;
-            if(txt.includes('></')) codeInput.selectionStart = start + txt.indexOf('></') + 1;
-            if(txt.includes('""')) codeInput.selectionStart = start + txt.indexOf('""') + 1;
-            codeInput.focus();
+    // --- UTILITÁRIOS ---
+    function ins(txt) {
+        const start = codeInput.selectionStart;
+        const end = codeInput.selectionEnd;
+        const val = codeInput.value;
+        codeInput.value = val.substring(0, start) + txt + val.substring(end);
+        codeInput.selectionStart = codeInput.selectionEnd = start + txt.length;
+        if(txt.includes('></')) codeInput.selectionStart = start + txt.indexOf('></') + 1;
+        if(txt.includes('""')) codeInput.selectionStart = start + txt.indexOf('""') + 1;
+        codeInput.focus();
+        autoResizeEditor();
+        saveDraftAutomatic();
+    }
+
+    function copyCode() { 
+        navigator.clipboard.writeText(codeInput.value).then(() => {
+            let old = titleEl.innerText;
+            titleEl.innerText = "Copiado!";
+            setTimeout(() => titleEl.innerText = old, 1500);
+        });
+    }
+    
+    function clearCode() { 
+        if(confirm("Limpar editor?")) { 
+            codeInput.value = "";
             autoResizeEditor();
             saveDraftAutomatic(); 
         }
+    }
 
-        function copyCode() { 
-            navigator.clipboard.writeText(codeInput.value).then(() => {
-                let old = titleEl.innerText;
-                titleEl.innerText = "Copiado!";
-                setTimeout(() => titleEl.innerText = old, 1500);
-            });
-        }
-        
-        function clearCode() { 
-            if(confirm("Limpar editor?")) { 
-                codeInput.value = ""; 
-                autoResizeEditor();
-                saveDraftAutomatic(); 
+    function downloadCurrentFile() {
+        closeModeMenu();
+        const content = codeInput.value;
+        let filename = titleEl.innerText || 'index';
+        filename = filename.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+        if (!filename.endsWith('.html')) filename += '.html';
+        const blob = new Blob([content], { type: 'text/html' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a'); a.href = url;
+        a.download = filename;
+        document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+    }
+
+    // --- BACKUP INDEXEDDB ---
+    async function exportData() {
+        try {
+            const allRecords = await DB.getAll();
+            const exportList = [];
+            
+            for(const record of allRecords) {
+                const decrypted = await CryptoEngine.decrypt(record.data);
+                if(decrypted) exportList.push(JSON.parse(decrypted));
             }
-        }
 
-        function downloadCurrentFile() {
-            closeModeMenu();
-            const content = codeInput.value;
-            let filename = titleEl.innerText || 'index';
-            filename = filename.replace(/[^a-z0-9]/gi, '_').toLowerCase();
-            if (!filename.endsWith('.html')) filename += '.html';
-            const blob = new Blob([content], { type: 'text/html' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a'); a.href = url; a.download = filename;
-            document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
-        }
+            if(!exportList.length) return alert("Nada para exportar.");
 
-        function exportData() {
-            const data = [];
-            for(let i=0; i<localStorage.length; i++) {
-                if(localStorage.key(i).startsWith('phtml_')) data.push(JSON.parse(localStorage.getItem(localStorage.key(i))));
-            }
-            if(!data.length) return alert("Nada para exportar.");
             const a = document.createElement('a');
-            a.href = URL.createObjectURL(new Blob([JSON.stringify(data)], {type: "application/json"}));
-            a.download = `backup-phtml-${new Date().toISOString().slice(0,10)}.json`;
+            a.href = URL.createObjectURL(new Blob([JSON.stringify(exportList, null, 2)], {type: "application/json"}));
+            a.download = `backup-secure-${new Date().toISOString().slice(0,10)}.json`;
+            document.body.appendChild(a);
             a.click();
-        }
-        
-        function importTrigger() { document.getElementById('json-input').click(); }
-        function importData(input) {
-            const reader = new FileReader();
-            reader.onload = e => {
-                try {
-                    const imported = JSON.parse(e.target.result);
-                    if(Array.isArray(imported)) {
-                        imported.forEach(d => localStorage.setItem('phtml_'+d.id, JSON.stringify(d)));
-                        alert("Restaurado com sucesso!"); loadList();
-                    } else alert("Formato inválido.");
-                } catch(e) { alert("Erro ao importar."); }
-            };
-            if(input.files[0]) reader.readAsText(input.files[0]);
-            input.value = '';
-        }
+            document.body.removeChild(a);
+        } catch(e) { alert("Erro ao exportar: " + e.message); }
+    }
+    
+    function importTrigger() { document.getElementById('json-input').click(); }
 
-        // --- INICIALIZAÇÃO ---
-        loadModePreference();
-        setMode('files');
+    function importData(input) {
+        const reader = new FileReader();
+        reader.onload = async e => {
+            try {
+                const imported = JSON.parse(e.target.result);
+                if(Array.isArray(imported)) {
+                    let count = 0;
+                    for (const doc of imported) {
+                        if(doc.id && doc.content) {
+                            // Criptografa e salva no DB
+                            const encrypted = await CryptoEngine.encrypt(JSON.stringify(doc));
+                            await DB.save({ id: doc.id, data: encrypted });
+                            count++;
+                        }
+                    }
+                    alert(`${count} projetos restaurados!`);
+                    loadList();
+                } else { alert("Backup inválido."); }
+            } catch(e) { alert("Erro ao importar."); }
+        };
+        if(input.files[0]) reader.readAsText(input.files[0]);
+        input.value = '';
+    }
+
+    // --- INICIALIZAÇÃO ---
+    loadModePreference();
     </script>
 </body>
 </html>
