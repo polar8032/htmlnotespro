@@ -1409,26 +1409,33 @@
     }
     
     async function delFile(id) {
-        // Feedback visual imediato (para parecer rápido)
+        // Feedback visual imediato
         const el = document.getElementById(`file-${id}`);
         if(el) el.style.opacity = '0.5';
 
         if(confirm("Tem a certeza que deseja apagar este projeto?\nEsta ação não pode ser desfeita.")) {
-            await DB.delete(id);
-            
-            // Se apagamos o arquivo que estava aberto no editor
-            if(currentId == id) {
-                currentId = null;
-                codeInput.value = ""; 
-                titleEl.innerText = "Meus Projetos";
-                titleEl.style.fontStyle = "normal";
-                clearTimeout(autoSaveTimer);
-                // Se estiver no modo desktop, limpa a preview
-                if(isDesktop) iframe.srcdoc = "";
+            try {
+                // Tenta apagar das duas formas para garantir (Correção do Bug)
+                await DB.delete(id.toString()); // Apaga se for Texto (Novos)
+                if(!isNaN(id)) await DB.delete(parseInt(id)); // Apaga se for Número (Antigos)
+                
+                // Se apagamos o arquivo que estava aberto no editor
+                if(currentId == id) {
+                    currentId = null;
+                    codeInput.value = ""; 
+                    titleEl.innerText = "Meus Projetos";
+                    titleEl.style.fontStyle = "normal";
+                    clearTimeout(autoSaveTimer);
+                    // Se estiver no modo desktop, limpa a preview
+                    if(isDesktop) iframe.srcdoc = "";
+                }
+                
+                await loadList(); // Atualiza a lista
+                showToast("Projeto apagado.", "success");
+            } catch(e) {
+                showToast("Erro ao apagar: " + e, "error");
+                if(el) el.style.opacity = '1';
             }
-            
-            // Recarrega a lista
-            loadList();
         } else {
             // Se cancelar, volta ao normal
             if(el) el.style.opacity = '1';
