@@ -506,6 +506,16 @@
 .toast.error { border-color: var(--accent-red); color: #ffcece; }
 .toast.success { border-color: var(--accent-green); color: #d1ffd6; }
 @keyframes toastUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    /* --- ANIMAÇÕES PREMIUM (FLUIDEZ) --- */
+        @keyframes slideInRight { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
+        @keyframes fadeInScale { from { opacity: 0; transform: scale(0.98); } to { opacity: 1; transform: scale(1); } }
+        
+        /* Aplica animação suave quando as telas abrem */
+        #editor-area.active-anim { animation: slideInRight 0.3s cubic-bezier(0.2, 0.8, 0.2, 1); }
+        #files-overlay.active-anim .file-list { animation: fadeInScale 0.3s cubic-bezier(0.2, 0.8, 0.2, 1); }
+        
+        /* Feedback visual nos botões */
+        .ios-btn:active, .file-entry:active { transform: scale(0.96); transition: transform 0.1s; }
     </style>
 </head>
 <body>
@@ -715,7 +725,8 @@
     const menuOverlay = document.getElementById('menu-overlay');
     const modeMenuBtn = document.getElementById('mode-menu-btn');
     const saveBtn = document.getElementById('btn-save');
-    
+
+    let originalContent = "";    
     let currentId = null;
     let isDesktop = false;
     let currentView = 'files';
@@ -1071,16 +1082,28 @@
         }
     }
 
-    function setMode(mode) {
+    // Tornamos ASYNC para poder usar AWAIT
+    async function setMode(mode) {
         currentView = mode;
         document.getElementById('tab-files')?.classList.remove('active');
         document.getElementById('tab-code')?.classList.remove('active');
         document.getElementById('tab-view')?.classList.remove('active');
+        
+        // Remove classes de animação antigas para poder reiniciar
+        editorArea.classList.remove('active-anim');
+        overlay.classList.remove('active-anim');
 
         if (mode === 'files') {
-            saveDraftAutomatic();
+            // AWAIT CRUCIAL: Espera salvar antes de carregar a lista
+            if(!currentId || titleEl.style.fontStyle === "italic") {
+                 await saveDraftAutomatic(); 
+            }
+            
             document.getElementById('tab-files')?.classList.add('active');
+            
             overlay.style.display = 'flex';
+            overlay.classList.add('active-anim'); // Ativa animação
+            
             editorArea.style.display = 'none';
             document.getElementById('toolbar').style.display = 'none';
             document.getElementById('preview-area').style.display = 'none';
@@ -1089,11 +1112,16 @@
             titleEl.innerText = 'Meus Projetos';
             titleEl.style.fontStyle = 'normal';
             body.classList.remove('desktop-mode');
-            loadList();
+            
+            await loadList(); // Carrega lista atualizada
+            
         } else if (mode === 'code') {
             document.getElementById('tab-code')?.classList.add('active');
             overlay.style.display = 'none';
+            
             editorArea.style.display = 'flex';
+            editorArea.classList.add('active-anim'); // Ativa animação
+            
             document.getElementById('toolbar').style.display = 'flex';
             document.getElementById('preview-area').style.display = isDesktop ? 'flex' : 'none';
             saveBtn.style.display = 'block';
@@ -1102,6 +1130,7 @@
             autoResizeEditor();
             if(isDesktop) updatePreview();
         } else if (mode === 'view') {
+            // ... (restante igual ao original)
             document.getElementById('tab-view')?.classList.add('active');
             overlay.style.display = 'none';
             editorArea.style.display = isDesktop ? 'flex' : 'none';
@@ -1170,25 +1199,21 @@
         lineNums.innerHTML = lineHTML;
     }
     async function saveDraftAutomatic() {
+        // 1. Se não tem nada escrito e não tem ID, ignora
         if (!codeInput.value.trim() && !currentId) return;
-        // Não salva se não houve mudança (opcional, mas bom para performance)
         
+        // 2. LÓGICA NOVA: Se é um arquivo JÁ SALVO (não itálico), NÃO faz autosave como rascunho.
+        // O usuário tem que clicar em salvar ou confirmar ao sair.
+        if (currentId && titleEl.style.fontStyle !== "italic") return;
+
+        // 3. Se é um rascunho novo (sem ID), cria ID
         if (!currentId) currentId = Date.now().toString();
 
-        // Verifica se já existe para manter nome e status
-        let isDraft = true;
-        let name = "Rascunho Sem Título";
-        
-        // Tenta ler o doc atual da memória ou DB seria ideal, mas simplificamos:
-        const previewText = codeInput.value.trim().substring(0, 20).replace(/\n/g, " ");
-        
-        // Se já está carregado e tem título, mantemos. 
-        // Lógica simplificada: Se o título no header não é "Novo Rascunho" nem "Meus Projetos"
-        if(titleEl.innerText !== "Novo Rascunho" && titleEl.innerText !== "Meus Projetos") {
-            name = titleEl.innerText;
-            if(titleEl.style.fontStyle !== "italic") isDraft = false;
-        } else {
-            name = previewText ? `Rascunho: ${previewText}...` : "Rascunho Vazio";
+        // Define nome provisório
+        let name = titleEl.innerText;
+        if(name === "Novo Rascunho" || name === "Meus Projetos") {
+            const preview = codeInput.value.trim().substring(0, 20).replace(/\n/g, " ");
+            name = preview ? `Rascunho: ${preview}...` : "Rascunho Vazio";
         }
 
         const docPlain = { 
@@ -1196,17 +1221,17 @@
             name: name, 
             content: codeInput.value, 
             date: new Date().toLocaleDateString('pt-BR'),
-            isDraft: isDraft 
+            isDraft: true // Força flag de rascunho
         };
 
         try {
             const encryptedContent = await CryptoEngine.encrypt(JSON.stringify(docPlain));
-            // Salva no IndexedDB
             await DB.save({ id: currentId, data: encryptedContent });
-            if (isDraft) titleEl.style.fontStyle = "italic";
-        } catch(e) {
-            console.error("Erro ao salvar automático", e);
-        }
+            
+            titleEl.style.fontStyle = "italic"; // Marca visualmente como rascunho
+            // Atualiza o originalContent para evitar loops
+            if(!originalContent) originalContent = codeInput.value; 
+        } catch(e) { console.error(e); }
     }
 
     async function saveDoc() {
@@ -1223,7 +1248,7 @@
             name: name, 
             content: codeInput.value, 
             date: new Date().toLocaleDateString('pt-BR'),
-            isDraft: false 
+            isDraft: false // Agora é oficial
         };
 
         try {
@@ -1232,15 +1257,24 @@
             
             titleEl.innerText = name;
             titleEl.style.fontStyle = "normal";
+            
+            originalContent = codeInput.value; // Atualiza referência de "limpo"
+            showToast("Salvo com sucesso!", "success");
+            
+            // Se estivermos vendo arquivos, recarrega
             if(currentView === 'files') loadList();
         } catch(e) {
-            alert("Erro ao salvar! Espaço insuficiente ou erro no DB.");
+            showToast("Erro ao salvar no banco de dados.", "error");
         }
     }
 
     function createFile() {
-        saveDraftAutomatic();
+        // Se estava num rascunho anterior não salvo, salva-o
+        if(!currentId && codeInput.value.trim()) saveDraftAutomatic();
+
         codeInput.value = "";
+        originalContent = ""; // Reset
+        
         titleEl.innerText = "Novo Rascunho";
         titleEl.style.fontStyle = "italic";
         currentId = null;
@@ -1249,9 +1283,25 @@
         setMode('code');
     }
 
-    function openFiles() { setMode('files'); }
-    function toggleFolder(folderId) {
-        document.getElementById(folderId).classList.toggle('open');
+   async function openFiles() {
+        // Verifica se é arquivo salvo E se houve alteração
+        const isSavedFile = currentId && titleEl.style.fontStyle !== "italic";
+        const hasChanges = codeInput.value !== originalContent;
+
+        if (isSavedFile && hasChanges) {
+            // Pergunta nativa (ou poderia ser custom modal)
+            if(confirm("Há alterações não salvas. Deseja salvar antes de sair?")) {
+                await saveDoc(); // Salva e continua
+            } else {
+                // Se cancelou, apenas sai (as alterações são perdidas, volta ao estado do DB)
+                // Não fazemos nada, o setMode('files') abaixo vai recarregar a lista
+            }
+        } else {
+            // Se for rascunho, garante autosave final
+            await saveDraftAutomatic();
+        }
+
+        setMode('files');
     }
 
     async function loadList() {
@@ -1330,8 +1380,8 @@
     }
 
     async function loadFile(id) {
-        // Salva o atual antes de trocar
-        await saveDraftAutomatic();
+        // Se houver rascunho pendente anterior, salva antes de trocar
+        if(!currentId) await saveDraftAutomatic(); 
         
         try {
             const record = await DB.get(id);
@@ -1341,14 +1391,18 @@
             if (decrypted) {
                 const doc = JSON.parse(decrypted);
                 codeInput.value = doc.content;
+                
+                // MEMORIZA O CONTEÚDO ORIGINAL PARA COMPARAR DEPOIS
+                originalContent = doc.content; 
+
                 titleEl.innerText = doc.name;
                 titleEl.style.fontStyle = doc.isDraft ? "italic" : "normal";
                 currentId = doc.id;
+                
                 autoResizeEditor();
                 setMode('code');
-                if(isDesktop) updatePreview();
             }
-        } catch(e) { alert("Erro ao abrir arquivo."); }
+        } catch(e) { showToast("Erro ao abrir arquivo.", "error"); }
     }
     
     async function delFile(id) {
