@@ -1303,7 +1303,10 @@
 
         setMode('files');
     }
-
+    function toggleFolder(id) {
+        const folder = document.getElementById(id);
+        if (folder) folder.classList.toggle('open');
+    }
     async function loadList() {
         const savedContainer = document.getElementById('saved-list-container');
         const draftsContainer = document.getElementById('drafts-list-container');
