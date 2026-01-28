@@ -365,36 +365,62 @@
             width: 600px; max-width: 100%; margin: 0 auto; 
             border-left: 1px solid #333; border-right: 1px solid #333;
         }
-	/* --- MELHORIAS PARA DESKTOP (PC) --- */
+	/* --- ESTILOS RESPONSIVOS (MOBILE & PC) --- */
+        
+        /* Menu Sanfona (Collapsible) para poupar espaço */
+        details.settings-group {
+            background: rgba(0,0,0,0.2);
+            border-radius: 12px;
+            margin-top: 15px;
+            border: 1px solid var(--glass-border);
+            overflow: hidden;
+        }
+        details.settings-group summary {
+            padding: 12px;
+            font-weight: 600; color: var(--text-dim);
+            cursor: pointer; list-style: none;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        details.settings-group summary::after { content: '+'; font-size: 16px; font-weight: bold; }
+        details.settings-group[open] summary::after { content: '-'; }
+        details.settings-group[open] { background: rgba(0,0,0,0.4); }
+        .settings-content { padding: 10px; }
+
+
+        /* --- MODO DESKTOP (PC) --- */
         @media (min-width: 768px) {
-            /* Scrollbars Bonitas (Dark Mode) */
-            ::-webkit-scrollbar { width: 10px; height: 10px; }
+            /* Scrollbars Finas */
+            ::-webkit-scrollbar { width: 8px; height: 8px; }
             ::-webkit-scrollbar-track { background: var(--bg-app); }
-            ::-webkit-scrollbar-thumb { background: #333; border-radius: 5px; border: 2px solid var(--bg-app); }
+            ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
             ::-webkit-scrollbar-thumb:hover { background: #555; }
 
-            /* Efeitos de Hover (Rato) */
-            .file-entry { transition: transform 0.2s, background 0.2s, box-shadow 0.2s; cursor: pointer; }
-            .file-entry:hover {
-                background: #2a2a30;
-                transform: translateY(-2px);
-                box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-                border-color: var(--accent-primary);
+            /* Grid para Botões no PC (Lado a Lado) */
+            .backup-grid {
+                display: grid;
+                grid-template-columns: 1fr 1fr; /* 2 colunas */
+                gap: 10px;
             }
 
-            /* Botão de Apagar mais visível no PC */
-            .delete-btn {
-                opacity: 0; transition: opacity 0.2s, background 0.2s;
-                border-radius: 8px; padding: 8px 12px;
+            /* Botões mais compactos no PC */
+            .ios-full-btn {
+                padding: 10px !important; /* Menos gordo */
+                font-size: 13px !important; /* Letra menor */
+                margin-bottom: 0 !important; /* Remove margem extra */
+                height: 100%;
             }
+            
+            /* Ajustes visuais gerais para PC */
+            .file-entry { padding: 10px 14px; } /* Lista mais compacta */
+            .file-name { font-size: 14px; }
+            .create-btn { padding: 12px; font-size: 15px; margin-bottom: 15px; }
+            
+            /* Hover Effects */
+            .file-entry:hover { background: #2a2a30; transform: translateY(-1px); }
+            .delete-btn { opacity: 0; transition: 0.2s; }
             .file-entry:hover .delete-btn { opacity: 1; }
-            .delete-btn:hover { background: rgba(255, 85, 85, 0.2); color: #ff5555; }
-
-            /* Botões Gerais */
-            button, .create-btn { cursor: pointer; }
-            .create-btn:hover { filter: brightness(1.2); }
+            button:hover { filter: brightness(1.1); }
         }
-
     </style>
 </head>
 <body>
@@ -536,27 +562,40 @@
         </div>
 
         <div class="backup-area">
-            <button class="ios-full-btn btn-green" onclick="exportData()">⬇ Backup JSON</button>
-            <button class="ios-full-btn btn-gray" onclick="importTrigger()">⬆ Restaurar Backup</button>
-	<div class="backup-area" style="border-top: none; padding-top: 0;">
-            <div style="height:1px; background:var(--glass-border); margin-bottom: 20px;"></div>
+            <div style="font-size:10px; text-transform:uppercase; color:#666; font-weight:700; margin-bottom:8px; letter-spacing:1px">Backup & Dados</div>
             
-            <button class="ios-full-btn" style="background:#323238; color:#fff" onclick="changePassword()">
-                🔑 Alterar Senha
-            </button>
+            <div class="backup-grid">
+                <button class="ios-full-btn btn-green" onclick="exportData()">
+                    <span style="margin-right:6px">⬇</span> Backup JSON
+                </button>
+                <button class="ios-full-btn btn-gray" onclick="importTrigger()">
+                    <span style="margin-right:6px">⬆</span> Restaurar
+                </button>
+            </div>
+
+            <details class="settings-group">
+                <summary>⚙️ Conta e Segurança</summary>
+                
+                <div class="settings-content">
+                    <div class="backup-grid"> <button class="ios-full-btn" style="background:#323238; color:#fff" onclick="changePassword()">
+                            🔑 Mudar Senha
+                        </button>
+                        
+                        <button class="ios-full-btn" style="background:#323238; color:#ff8080" onclick="logout()">
+                            🔒 Sair
+                        </button>
+                    </div>
+                    
+                    <button class="ios-full-btn" style="background:rgba(255, 85, 85, 0.1); color:#ff5555; margin-top:10px; border:1px solid rgba(255,85,85,0.2)" onclick="nukeApp()">
+                        ⚠️ Apagar Tudo (Reset)
+                    </button>
+                </div>
+            </details>
             
-            <button class="ios-full-btn" style="background:#323238; color:#ff8080" onclick="logout()">
-                🔒 Sair (Logout)
-            </button>
-            
-            <button class="ios-full-btn" style="background:rgba(255, 85, 85, 0.15); color:#ff5555; margin-top:10px" onclick="nukeApp()">
-                ⚠️ Apagar Tudo (Reset)
-            </button>
-            
-            <div style="text-align:center; color:#666; font-size:10px; margin-top:10px">
-                PocketHTML Pro v1.0                
+            <div style="text-align:center; color:#444; font-size:10px; margin-top:15px">
+                PocketHTML Pro v1.1
+            </div>
         </div>
-    </div>
 
     <input type="file" id="json-input" accept=".json" style="display:none" onchange="importData(this)">
 
