@@ -1356,10 +1356,9 @@
                         </div>
                     </div>
                     
-                    <div class="delete-btn" onclick="delFile(event, '${doc.id}')" title="Apagar Projeto">
+                   <div class="delete-btn" style="z-index:10; position:relative;" onclick="delFile(event, '${doc.id}')" title="Apagar Projeto">
     🗑️
 </div>
-                
                 
                 if (isDraft) { draftsContainer.appendChild(div); draftCount++; } 
                 else { savedContainer.appendChild(div); savedCount++; }
@@ -1409,28 +1408,26 @@
     }
     
     async function delFile(event, id) {
-    // 1. Impede que o clique "suba" e abra o arquivo ao mesmo tempo
+    // 1. Pára tudo imediatamente
     if (event) {
         event.stopPropagation();
         event.preventDefault();
     }
 
-    // 2. Efeito visual imediato
-    // Nota: Adicionámos aspas em 'file-' + id para garantir que funciona
     const el = document.getElementById('file-' + id);
-    if(el) el.style.opacity = '0.3';
-    
-    // 3. Pequeno atraso para garantir que a UI não bloqueia antes do confirm
+    if(el) el.style.opacity = '0.5'; // Feedback visual de que clicou
+
+    // 2. Atraso aumentado para 100ms para compensar a animação CSS no PC
     setTimeout(async () => {
+        // O confirm bloqueia o navegador, por isso precisa deste tempo extra
         if(!confirm("Tem a certeza absoluta que deseja apagar?")) {
-            if(el) el.style.opacity = '1';
+            if(el) el.style.opacity = '1'; // Cancela visualmente
             return;
         }
 
         try {
             await DB.delete(id);
             
-            // Limpa a interface se for o arquivo atual
             if(currentId == id) {
                 currentId = null;
                 codeInput.value = ""; 
@@ -1439,7 +1436,6 @@
                 if(typeof iframe !== 'undefined') iframe.srcdoc = "";
             }
             
-            // Remove o elemento da lista visualmente
             if(el) {
                 el.style.transition = 'all 0.3s';
                 el.style.transform = 'translateX(50px)';
@@ -1447,16 +1443,15 @@
                 setTimeout(() => el.remove(), 300);
             }
             
-            // Recarrega a lista para atualizar contadores
             setTimeout(loadList, 350);
-            showToast("Projeto eliminado com sucesso.", "success");
+            showToast("Projeto eliminado.", "success");
 
         } catch(e) {
-            console.error("Erro ao apagar:", e);
-            showToast("Erro ao apagar: " + e.message, "error");
+            console.error(e);
+            showToast("Erro: " + e.message, "error");
             if(el) el.style.opacity = '1';
         }
-    }, 10);
+    }, 100); // <--- O SEGREDO ESTÁ AQUI (100ms)
 }
     // --- UTILITÁRIOS ---
     function ins(txt) {
