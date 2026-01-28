@@ -365,6 +365,35 @@
             width: 600px; max-width: 100%; margin: 0 auto; 
             border-left: 1px solid #333; border-right: 1px solid #333;
         }
+	/* --- MELHORIAS PARA DESKTOP (PC) --- */
+        @media (min-width: 768px) {
+            /* Scrollbars Bonitas (Dark Mode) */
+            ::-webkit-scrollbar { width: 10px; height: 10px; }
+            ::-webkit-scrollbar-track { background: var(--bg-app); }
+            ::-webkit-scrollbar-thumb { background: #333; border-radius: 5px; border: 2px solid var(--bg-app); }
+            ::-webkit-scrollbar-thumb:hover { background: #555; }
+
+            /* Efeitos de Hover (Rato) */
+            .file-entry { transition: transform 0.2s, background 0.2s, box-shadow 0.2s; cursor: pointer; }
+            .file-entry:hover {
+                background: #2a2a30;
+                transform: translateY(-2px);
+                box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+                border-color: var(--accent-primary);
+            }
+
+            /* Botão de Apagar mais visível no PC */
+            .delete-btn {
+                opacity: 0; transition: opacity 0.2s, background 0.2s;
+                border-radius: 8px; padding: 8px 12px;
+            }
+            .file-entry:hover .delete-btn { opacity: 1; }
+            .delete-btn:hover { background: rgba(255, 85, 85, 0.2); color: #ff5555; }
+
+            /* Botões Gerais */
+            button, .create-btn { cursor: pointer; }
+            .create-btn:hover { filter: brightness(1.2); }
+        }
 
     </style>
 </head>
@@ -1059,11 +1088,12 @@
     async function loadList() {
         const savedContainer = document.getElementById('saved-list-container');
         const draftsContainer = document.getElementById('drafts-list-container');
-        savedContainer.innerHTML = '<div style="padding:20px; text-align:center">Carregando...</div>';
-        draftsContainer.innerHTML = '';
         
+        // Feedback visual de carregamento melhor
+        savedContainer.innerHTML = '<div style="padding:20px; text-align:center; opacity:0.5">🔄 Carregando projetos...</div>';
+        draftsContainer.innerHTML = '';
+
         try {
-            // Pega tudo do IndexedDB
             const allRecords = await DB.getAll();
             const docs = [];
 
@@ -1071,11 +1101,11 @@
                 try {
                     const decryptedJson = await CryptoEngine.decrypt(record.data);
                     if(decryptedJson) docs.push(JSON.parse(decryptedJson));
-                } catch(e) { console.error("Falha ao decriptar um arquivo", e); }
+                } catch(e) { console.error("Falha ao ler arquivo", e); }
             }
 
-            savedContainer.innerHTML = ''; // Limpa loading
-            docs.sort((a,b) => b.id - a.id);
+            savedContainer.innerHTML = '';
+            docs.sort((a,b) => b.id - a.id); // Ordenar do mais recente para o antigo
             
             let draftCount = 0;
             let savedCount = 0;
@@ -1083,18 +1113,32 @@
             docs.forEach(doc => {
                 const div = document.createElement('div');
                 div.className = 'file-entry';
+                // Adiciona ID para manipulação se necessário
+                div.id = `file-${doc.id}`;
+                
                 const isDraft = doc.isDraft === true; 
-                const icon = isDraft ? '📝' : '📄';
+                const icon = isDraft ? '📝' : '📄'; // Ícones diferentes
                 const colorStyle = isDraft ? 'color:var(--accent-orange)' : 'color:var(--text-main)';
+                
+                // DATA FORMATADA PARA PC
+                const dateObj = new Date(parseInt(doc.id)); // Usa o ID (timestamp) se data falhar
+                const dateStr = dateObj.toLocaleDateString() + ' ' + dateObj.toLocaleTimeString().slice(0,5);
+
                 div.innerHTML = `
-                    <div class="file-info" style="flex:1" onclick="loadFile('${doc.id}')">
-                        <div class="file-name" style="${colorStyle}">
-                            <span style="margin-right:12px; font-size:18px">${icon}</span>${doc.name}
+                    <div class="file-info" style="flex:1; display:flex; flex-direction:column; gap:4px;" onclick="loadFile('${doc.id}')">
+                        <div class="file-name" style="${colorStyle}; font-weight:600; font-size:15px;">
+                            <span style="margin-right:10px; opacity:0.8">${icon}</span>${doc.name}
                         </div>
-                        <div class="file-date">${doc.date}</div>
+                        <div class="file-date" style="font-size:11px; color:#666; margin-left:28px;">
+                            Editado em: ${doc.date || dateStr}
+                        </div>
                     </div>
-                    <div class="delete-btn" onclick="delFile('${doc.id}')">✕</div>
+                    
+                    <div class="delete-btn" onclick="event.stopPropagation(); delFile('${doc.id}')" title="Apagar Projeto">
+                        🗑️
+                    </div>
                 `;
+                
                 if (isDraft) { draftsContainer.appendChild(div); draftCount++; } 
                 else { savedContainer.appendChild(div); savedCount++; }
             });
@@ -1102,10 +1146,17 @@
             document.getElementById('count-drafts').innerText = `${draftCount}`;
             document.getElementById('count-saved').innerText = `${savedCount}`;
             document.getElementById('folder-drafts').style.display = draftCount > 0 ? 'block' : 'none';
-            if(savedCount === 0) savedContainer.innerHTML = '<div style="padding:20px; text-align:center; color:#555; font-size:13px; font-style:italic">Nenhum projeto salvo.</div>';
+            
+            if(savedCount === 0) {
+                savedContainer.innerHTML = `
+                    <div style="padding:40px; text-align:center; color:#444; border: 2px dashed #333; border-radius:10px;">
+                        <div style="font-size:30px; margin-bottom:10px">📂</div>
+                        Nenhum projeto salvo.<br>Toque em <b>+ Novo Documento</b>.
+                    </div>`;
+            }
         
         } catch(e) {
-            savedContainer.innerHTML = "Erro ao carregar lista.";
+            savedContainer.innerHTML = `<div style="color:red; text-align:center">Erro ao carregar: ${e.message}</div>`;
         }
     }
 
@@ -1132,14 +1183,29 @@
     }
     
     async function delFile(id) {
-        if(confirm("Apagar permanentemente?")) {
+        // Feedback visual imediato (para parecer rápido)
+        const el = document.getElementById(`file-${id}`);
+        if(el) el.style.opacity = '0.5';
+
+        if(confirm("Tem a certeza que deseja apagar este projeto?\nEsta ação não pode ser desfeita.")) {
             await DB.delete(id);
+            
+            // Se apagamos o arquivo que estava aberto no editor
             if(currentId == id) {
                 currentId = null;
-                codeInput.value = ""; titleEl.innerText = "Meus Projetos";
+                codeInput.value = ""; 
+                titleEl.innerText = "Meus Projetos";
+                titleEl.style.fontStyle = "normal";
                 clearTimeout(autoSaveTimer);
+                // Se estiver no modo desktop, limpa a preview
+                if(isDesktop) iframe.srcdoc = "";
             }
+            
+            // Recarrega a lista
             loadList();
+        } else {
+            // Se cancelar, volta ao normal
+            if(el) el.style.opacity = '1';
         }
     }
 
