@@ -1409,35 +1409,59 @@
     }
     
     async function delFile(id) {
-        // Feedback visual imediato
+        // 1. Efeito visual imediato 
         const el = document.getElementById(`file-${id}`);
-        if(el) el.style.opacity = '0.5';
+        if(el) el.style.opacity = '0.3';
+        if(!confirm("Tem a certeza absoluta que deseja apagar?")) {
+             if(el) el.style.opacity = '1';
+             return;
+        }
 
-        if(confirm("Tem a certeza que deseja apagar este projeto?\nEsta ação não pode ser desfeita.")) {
-            try {
-                // Tenta apagar das duas formas para garantir (Correção do Bug)
-                await DB.delete(id.toString()); // Apaga se for Texto (Novos)
-                if(!isNaN(id)) await DB.delete(parseInt(id)); // Apaga se for Número (Antigos)
+        try {
+            const db = await DB.connect();
+            await new Promise((resolve, reject) => {
+                const tx = db.transaction(storeName, "readwrite");
+                const store = tx.objectStore(storeName);
+
+                store.delete(id);            
+                store.delete(String(id));     
+                store.delete(Number(id));    
                 
-                // Se apagamos o arquivo que estava aberto no editor
-                if(currentId == id) {
-                    currentId = null;
-                    codeInput.value = ""; 
-                    titleEl.innerText = "Meus Projetos";
-                    titleEl.style.fontStyle = "normal";
-                    clearTimeout(autoSaveTimer);
-                    // Se estiver no modo desktop, limpa a preview
-                    if(isDesktop) iframe.srcdoc = "";
-                }
-                
-                await loadList(); // Atualiza a lista
-                showToast("Projeto apagado.", "success");
-            } catch(e) {
-                showToast("Erro ao apagar: " + e, "error");
-                if(el) el.style.opacity = '1';
+                const cursorReq = store.openCursor();
+                cursorReq.onsuccess = (e) => {
+                    const cursor = e.target.result;
+                    if (cursor) {
+                        
+                        if (cursor.key == id) { 
+                            cursor.delete();
+                        }
+                        cursor.continue();
+                    }
+                };
+
+                tx.oncomplete = () => resolve();
+                tx.onerror = () => reject(tx.error);
+            });
+
+            // 5. Sucesso: Limpeza da Interface
+            if(currentId == id) {
+                currentId = null;
+                codeInput.value = ""; 
+                titleEl.innerText = "Meus Projetos";
+                titleEl.style.fontStyle = "normal";
+                if(isDesktop) iframe.srcdoc = "";
             }
-        } else {
-            // Se cancelar, volta ao normal
+            
+            // Remove o elemento da lista manualmente (mais rápido que recarregar tudo)
+            if(el) el.remove();
+            
+            // Recarrega contadores em segundo plano
+            setTimeout(loadList, 500); 
+            showToast("Projeto exterminado com sucesso.", "success");
+
+        } catch(e) {
+            console.error(e);
+            showToast("Erro fatal: " + e.message, "error");
             if(el) el.style.opacity = '1';
         }
     }
