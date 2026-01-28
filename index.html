@@ -387,39 +387,79 @@
         .settings-content { padding: 10px; }
 
 
-        /* --- MODO DESKTOP (PC) --- */
+        /* --- MODO DESKTOP (PC) - VISUAL REFINADO --- */
         @media (min-width: 768px) {
-            /* Scrollbars Finas */
-            ::-webkit-scrollbar { width: 8px; height: 8px; }
-            ::-webkit-scrollbar-track { background: var(--bg-app); }
-            ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
+            /* Scrollbars Elegantes */
+            ::-webkit-scrollbar { width: 6px; height: 6px; }
+            ::-webkit-scrollbar-track { background: transparent; }
+            ::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
             ::-webkit-scrollbar-thumb:hover { background: #555; }
 
-            /* Grid para Botões no PC (Lado a Lado) */
+            /* Grid Inteligente para Botões */
             .backup-grid {
                 display: grid;
-                grid-template-columns: 1fr 1fr; /* 2 colunas */
-                gap: 10px;
+                grid-template-columns: 1fr 1fr;
+                gap: 12px;
             }
 
-            /* Botões mais compactos no PC */
+            /* Container Centralizado (Estilo "App Window") */
+            body.desktop-mode .files-header,
+            body.desktop-mode .file-list,
+            body.desktop-mode .backup-area { 
+                width: 500px; /* Mais estreito para não parecer esticado */
+                max-width: 90%; 
+                margin: 0 auto; 
+                border-left: 1px solid #333; 
+                border-right: 1px solid #333;
+                background-color: var(--bg-app); /* Garante fundo sólido */
+            }
+
+            /* Ajuste específico para a lista de arquivos não colar no fundo */
+            body.desktop-mode .file-list {
+                box-shadow: 0 0 50px rgba(0,0,0,0.5); /* Sombra para destaque */
+            }
+
+            /* Botões mais discretos no PC */
             .ios-full-btn {
-                padding: 10px !important; /* Menos gordo */
-                font-size: 13px !important; /* Letra menor */
-                margin-bottom: 0 !important; /* Remove margem extra */
-                height: 100%;
+                padding: 8px 16px !important;
+                font-size: 13px !important;
+                height: auto !important;
+                margin-bottom: 0 !important;
+                transition: all 0.2s;
+            }
+            .ios-full-btn:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            }
+
+            /* Lista de Arquivos Compacta */
+            .file-entry { 
+                padding: 8px 12px; 
+                margin-bottom: 8px;
+                border: 1px solid transparent;
+            }
+            .file-entry:hover { 
+                background: #2a2a30; 
+                border-color: rgba(255,255,255,0.1);
+                transform: scale(1.01);
             }
             
-            /* Ajustes visuais gerais para PC */
-            .file-entry { padding: 10px 14px; } /* Lista mais compacta */
-            .file-name { font-size: 14px; }
-            .create-btn { padding: 12px; font-size: 15px; margin-bottom: 15px; }
-            
-            /* Hover Effects */
-            .file-entry:hover { background: #2a2a30; transform: translateY(-1px); }
-            .delete-btn { opacity: 0; transition: 0.2s; }
-            .file-entry:hover .delete-btn { opacity: 1; }
-            button:hover { filter: brightness(1.1); }
+            .create-btn {
+                padding: 10px;
+                font-size: 14px;
+                margin: 10px 0 20px 0;
+            }
+
+            /* Ajuste do Título das Pastas */
+            .folder-header {
+                padding: 8px 12px;
+                background: rgba(255,255,255,0.03);
+                border-radius: 6px;
+                margin-bottom: 5px;
+            }
+            .folder-header:hover {
+                background: rgba(255,255,255,0.06);
+            }
         }
     </style>
 </head>
@@ -547,7 +587,7 @@
                 </div>
             </div>
 
-            <div class="folder-container open" id="folder-saved">
+            <div class="folder-container" id="folder-saved">
                 <div class="folder-header" onclick="toggleFolder('folder-saved')">
                     <div style="display:flex; align-items:center; gap:8px">
                         <span>Salvos</span>
@@ -562,38 +602,42 @@
         </div>
 
         <div class="backup-area">
-            <div style="font-size:10px; text-transform:uppercase; color:#666; font-weight:700; margin-bottom:8px; letter-spacing:1px">Backup & Dados</div>
-            
-            <div class="backup-grid">
-                <button class="ios-full-btn btn-green" onclick="exportData()">
-                    <span style="margin-right:6px">⬇</span> Backup JSON
-                </button>
-                <button class="ios-full-btn btn-gray" onclick="importTrigger()">
-                    <span style="margin-right:6px">⬆</span> Restaurar
-                </button>
-            </div>
+            <details class="settings-group">
+                <summary>💾 Backup e Restaurar</summary>
+                <div class="settings-content">
+                    <div class="backup-grid">
+                        <button class="ios-full-btn btn-green" onclick="exportData()">
+                            <span style="margin-right:6px">⬇</span> Baixar JSON
+                        </button>
+                        <button class="ios-full-btn btn-gray" onclick="importTrigger()">
+                            <span style="margin-right:6px">⬆</span> Restaurar
+                        </button>
+                    </div>
+                    <div style="font-size:11px; color:#666; margin-top:5px; text-align:center">
+                        Guarde o arquivo .json em local seguro.
+                    </div>
+                </div>
+            </details>
 
             <details class="settings-group">
                 <summary>⚙️ Conta e Segurança</summary>
-                
                 <div class="settings-content">
-                    <div class="backup-grid"> <button class="ios-full-btn" style="background:#323238; color:#fff" onclick="changePassword()">
+                    <div class="backup-grid">
+                        <button class="ios-full-btn" style="background:#323238; color:#fff" onclick="changePassword()">
                             🔑 Mudar Senha
                         </button>
-                        
                         <button class="ios-full-btn" style="background:#323238; color:#ff8080" onclick="logout()">
                             🔒 Sair
                         </button>
                     </div>
-                    
                     <button class="ios-full-btn" style="background:rgba(255, 85, 85, 0.1); color:#ff5555; margin-top:10px; border:1px solid rgba(255,85,85,0.2)" onclick="nukeApp()">
                         ⚠️ Apagar Tudo (Reset)
                     </button>
                 </div>
             </details>
             
-            <div style="text-align:center; color:#444; font-size:10px; margin-top:15px">
-                PocketHTML Pro v1.1
+            <div style="text-align:center; color:#444; font-size:10px; margin-top:20px; opacity:0.6">
+                PocketHTML Pro v1.2
             </div>
         </div>
 
