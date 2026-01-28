@@ -1311,8 +1311,7 @@
         const savedContainer = document.getElementById('saved-list-container');
         const draftsContainer = document.getElementById('drafts-list-container');
         
-        // Feedback visual de carregamento melhor
-        savedContainer.innerHTML = '<div style="padding:20px; text-align:center; opacity:0.5">🔄 Carregando projetos...</div>';
+        savedContainer.innerHTML = '<div style="padding:20px; text-align:center; opacity:0.5">🔄 Carregando...</div>';
         draftsContainer.innerHTML = '';
 
         try {
@@ -1323,11 +1322,11 @@
                 try {
                     const decryptedJson = await CryptoEngine.decrypt(record.data);
                     if(decryptedJson) docs.push(JSON.parse(decryptedJson));
-                } catch(e) { console.error("Falha ao ler arquivo", e); }
+                } catch(e) { console.error("Erro arquivo", e); }
             }
 
             savedContainer.innerHTML = '';
-            docs.sort((a,b) => b.id - a.id); // Ordenar do mais recente para o antigo
+            docs.sort((a,b) => b.id - a.id); // Ordenar por mais recente
             
             let draftCount = 0;
             let savedCount = 0;
@@ -1335,17 +1334,16 @@
             docs.forEach(doc => {
                 const div = document.createElement('div');
                 div.className = 'file-entry';
-                // Adiciona ID para manipulação se necessário
-                div.id = `file-${doc.id}`;
+                div.id = 'file-' + doc.id; // Importante para o efeito visual de apagar
                 
                 const isDraft = doc.isDraft === true; 
-                const icon = isDraft ? '📝' : '📄'; // Ícones diferentes
+                const icon = isDraft ? '📝' : '📄';
                 const colorStyle = isDraft ? 'color:var(--accent-orange)' : 'color:var(--text-main)';
                 
-                // DATA FORMATADA PARA PC
-                const dateObj = new Date(parseInt(doc.id)); // Usa o ID (timestamp) se data falhar
+                const dateObj = new Date(parseInt(doc.id));
                 const dateStr = dateObj.toLocaleDateString() + ' ' + dateObj.toLocaleTimeString().slice(0,5);
 
+                // AQUI ESTAVA O PERIGO DE ERRO: As aspas invertidas ` ` têm de estar corretas
                 div.innerHTML = `
                     <div class="file-info" style="flex:1; display:flex; flex-direction:column; gap:4px;" onclick="loadFile('${doc.id}')">
                         <div class="file-name" style="${colorStyle}; font-weight:600; font-size:15px;">
@@ -1356,14 +1354,14 @@
                         </div>
                     </div>
                     
-                   <div class="delete-btn" style="z-index:10; position:relative;" onclick="delFile(event, '${doc.id}')" title="Apagar Projeto">
-    🗑️
-</div>
-`;
+                    <div class="delete-btn" style="z-index:10; position:relative;" onclick="delFile(event, '${doc.id}')" title="Apagar Projeto">
+                        🗑️
+                    </div>
+                `;
                 
                 if (isDraft) { draftsContainer.appendChild(div); draftCount++; } 
                 else { savedContainer.appendChild(div); savedCount++; }
-            });
+            }); // <--- VERIFIQUE SE ISTO EXISTE (Fecha o loop)
 
             document.getElementById('count-drafts').innerText = `${draftCount}`;
             document.getElementById('count-saved').innerText = `${savedCount}`;
@@ -1452,7 +1450,7 @@
             showToast("Erro: " + e.message, "error");
             if(el) el.style.opacity = '1';
         }
-    }, 100); // <--- O SEGREDO ESTÁ AQUI (100ms)
+    }, 100); 
 }
     // --- UTILITÁRIOS ---
     function ins(txt) {
