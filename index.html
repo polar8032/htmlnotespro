@@ -1409,63 +1409,41 @@
     }
     
     async function delFile(id) {
-        // 1. Efeito visual imediato 
-        const el = document.getElementById(`file-${id}`);
-        if(el) el.style.opacity = '0.3';
-        if(!confirm("Tem a certeza absoluta que deseja apagar?")) {
-             if(el) el.style.opacity = '1';
-             return;
-        }
-
-        try {
-            const db = await DB.connect();
-            await new Promise((resolve, reject) => {
-                const tx = db.transaction(storeName, "readwrite");
-                const store = tx.objectStore(storeName);
-
-                store.delete(id);            
-                store.delete(String(id));     
-                store.delete(Number(id));    
-                
-                const cursorReq = store.openCursor();
-                cursorReq.onsuccess = (e) => {
-                    const cursor = e.target.result;
-                    if (cursor) {
-                        
-                        if (cursor.key == id) { 
-                            cursor.delete();
-                        }
-                        cursor.continue();
-                    }
-                };
-
-                tx.oncomplete = () => resolve();
-                tx.onerror = () => reject(tx.error);
-            });
-
-            // 5. Sucesso: Limpeza da Interface
-            if(currentId == id) {
-                currentId = null;
-                codeInput.value = ""; 
-                titleEl.innerText = "Meus Projetos";
-                titleEl.style.fontStyle = "normal";
-                if(isDesktop) iframe.srcdoc = "";
-            }
-            
-            // Remove o elemento da lista manualmente (mais rápido que recarregar tudo)
-            if(el) el.remove();
-            
-            // Recarrega contadores em segundo plano
-            setTimeout(loadList, 500); 
-            showToast("Projeto exterminado com sucesso.", "success");
-
-        } catch(e) {
-            console.error(e);
-            showToast("Erro fatal: " + e.message, "error");
-            if(el) el.style.opacity = '1';
-        }
+    // 1. Efeito visual imediato 
+    const el = document.getElementById(`file-${id}`);
+    if(el) el.style.opacity = '0.3';
+    
+    if(!confirm("Tem a certeza absoluta que deseja apagar?")) {
+        if(el) el.style.opacity = '1';
+        return;
     }
 
+    try {
+        // 2. Apaga do IndexedDB usando o método correto
+        await DB.delete(id);
+
+        // 3. Limpa a interface se for o arquivo atual
+        if(currentId == id) {
+            currentId = null;
+            codeInput.value = ""; 
+            titleEl.innerText = "Meus Projetos";
+            titleEl.style.fontStyle = "normal";
+            if(isDesktop) iframe.srcdoc = "";
+        }
+        
+        // 4. Remove o elemento da lista
+        if(el) el.remove();
+        
+        // 5. Recarrega a lista para atualizar contadores
+        setTimeout(loadList, 300); 
+        showToast("Projeto eliminado com sucesso.", "success");
+
+    } catch(e) {
+        console.error("Erro ao apagar:", e);
+        showToast("Erro ao apagar: " + e.message, "error");
+        if(el) el.style.opacity = '1';
+    }
+}
     // --- UTILITÁRIOS ---
     function ins(txt) {
         const start = codeInput.selectionStart;
